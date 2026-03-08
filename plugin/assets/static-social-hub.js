@@ -57,7 +57,7 @@
       return;
     }
 
-    containerEl.innerHTML = '<div class="ssh-loading" aria-live="polite">' + t('Loading\u2026') + '</div>';
+    containerEl.innerHTML = '<div class="ssh-loading" aria-live="polite">' + t('Connecting to the social hub\u2026') + '</div>';
 
     fetchReactions(pageUrl, api, function (err, data) {
       if (err) {
