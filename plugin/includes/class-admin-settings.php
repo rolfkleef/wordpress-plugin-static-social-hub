@@ -3,7 +3,7 @@
  * Admin settings pages for the Static Social Hub plugin.
  *
  * Pages:
- *   Settings  → Static Social Hub    (tabs: General | Demo)
+ *   Settings  → Static Social Hub    (tabs: General | Widget | Demo)
  *   Appearance → Social Hub Widget              (theme setting + CSS reference)
  *
  * Options:
@@ -134,8 +134,8 @@ class Admin_Settings {
 			'before'
 		);
 
-		// On the main settings page we need both the preview controller (General tab)
-		// and the demo mount script (Demo tab) — both are always present in the DOM.
+		// Preview controller (Widget tab) and demo mount (Demo tab) both live on
+		// HOOK_GENERAL (same page, different ?tab= params) — load both eagerly.
 		if ( self::HOOK_GENERAL === $hook ) {
 			wp_add_inline_script( 'ssh-widget', self::get_preview_controller_js(), 'after' );
 			wp_add_inline_script( 'ssh-widget', self::get_demo_controller_js(), 'after' );
@@ -224,22 +224,12 @@ JS;
 	// -------------------------------------------------------------------------
 
 	public static function add_menu_page() {
-		// Main page under Settings menu (tabs: General | Demo).
 		add_options_page(
 			__( 'Static Social Hub', 'static-social-hub' ),
 			__( 'Static Social Hub', 'static-social-hub' ),
 			'manage_options',
 			'static-social-hub',
 			array( self::class, 'render_settings_page' )
-		);
-
-		// Appearance page under WP Appearance menu.
-		add_theme_page(
-			__( 'Social Hub Widget', 'static-social-hub' ),
-			__( 'Social Hub Widget', 'static-social-hub' ),
-			'manage_options',
-			'static-social-hub-appearance',
-			array( self::class, 'render_appearance_page' )
 		);
 	}
 
@@ -345,7 +335,7 @@ JS;
 
 		add_settings_section(
 			'ssh_appearance_section',
-			__( 'Widget Appearance', 'static-social-hub' ),
+			__( 'Styling', 'static-social-hub' ),
 			array( self::class, 'render_appearance_section_description' ),
 			'static-social-hub-appearance'
 		);
@@ -370,12 +360,12 @@ JS;
 
 		// Determine active tab (default: general).
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$active_tab = isset( $_GET['tab'] ) && 'demo' === $_GET['tab'] ? 'demo' : 'general';
+		$tab_input  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
+		$active_tab = in_array( $tab_input, array( 'general', 'widget', 'demo' ), true ) ? $tab_input : 'general';
 
-		$base_url       = admin_url( 'options-general.php?page=static-social-hub' );
-		$appearance_url = esc_url( admin_url( 'themes.php?page=static-social-hub-appearance' ) );
-		$widget_url     = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.js' );
-		$api_base       = esc_url( rest_url( SSH_REST_NAMESPACE ) );
+		$base_url = admin_url( 'options-general.php?page=static-social-hub' );
+		$widget_url = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.js' );
+		$api_base   = esc_url( rest_url( SSH_REST_NAMESPACE ) );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Static Social Hub', 'static-social-hub' ); ?></h1>
@@ -385,6 +375,10 @@ JS;
 				   class="nav-tab<?php echo 'general' === $active_tab ? ' nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'General', 'static-social-hub' ); ?>
 				</a>
+				<a href="<?php echo esc_url( $base_url . '&tab=widget' ); ?>"
+				   class="nav-tab<?php echo 'widget' === $active_tab ? ' nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Widget', 'static-social-hub' ); ?>
+				</a>
 				<a href="<?php echo esc_url( $base_url . '&tab=demo' ); ?>"
 				   class="nav-tab<?php echo 'demo' === $active_tab ? ' nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Demo', 'static-social-hub' ); ?>
@@ -392,19 +386,6 @@ JS;
 			</nav>
 
 			<?php if ( 'general' === $active_tab ) : ?>
-
-			<p style="margin-top:.75em;">
-				<?php
-				printf(
-					/* translators: %s: Appearance page link */
-					wp_kses(
-						__( 'To configure the widget theme and browse the CSS reference, visit <a href="%s">Appearance → Social Hub Widget</a>.', 'static-social-hub' ),
-						array( 'a' => array( 'href' => array() ) )
-					),
-					$appearance_url
-				);
-				?>
-			</p>
 
 			<form method="post" action="options.php">
 				<?php
@@ -414,7 +395,8 @@ JS;
 				?>
 			</form>
 
-			<hr>
+			<?php elseif ( 'widget' === $active_tab ) : ?>
+
 			<h2><?php esc_html_e( 'Embed Code', 'static-social-hub' ); ?></h2>
 			<p><?php esc_html_e( 'Add the following snippet to any static page where you want comments and reactions to appear:', 'static-social-hub' ); ?></p>
 			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;div id="ssh-comments"&gt;&lt;/div&gt;
@@ -433,6 +415,17 @@ JS;
 			<hr>
 			<?php self::render_preview_section(); ?>
 
+			<hr>
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( 'ssh_appearance_settings' );
+				do_settings_sections( 'static-social-hub-appearance' );
+				submit_button();
+				?>
+			</form>
+
+			<?php self::render_css_docs_section(); ?>
+
 			<?php else : // demo tab ?>
 
 			<?php self::render_demo_tab(); ?>
@@ -446,13 +439,9 @@ JS;
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$settings_url = esc_url( admin_url( 'options-general.php?page=static-social-hub' ) );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Social Hub Widget', 'static-social-hub' ); ?></h1>
-			<p>
-				<a href="<?php echo $settings_url; ?>">&larr; <?php esc_html_e( 'General Settings', 'static-social-hub' ); ?></a>
-			</p>
 
 			<form method="post" action="options.php">
 				<?php
@@ -578,7 +567,7 @@ JS;
 	}
 
 	public static function render_appearance_section_description() {
-		echo '<p>' . esc_html__( 'Control the default visual theme for the embedded widget and browse the full CSS customisation reference.', 'static-social-hub' ) . '</p>';
+		echo '<p>' . esc_html__( 'Control the default visual theme for the embedded widget. Use the CSS reference below to customise further.', 'static-social-hub' ) . '</p>';
 	}
 
 	public static function render_static_site_url_field() {
