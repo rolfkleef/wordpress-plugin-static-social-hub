@@ -1,6 +1,6 @@
 {
   "name": "static-social-hub",
-  "version": "0.0.0-development",
+  "version": "0.2.0",
   "description": "Static Social Hub is a WordPress plugin that allows you to create a social media feed on your website by fetching and displaying posts from various social media platforms.",
   "private": true,
   "scripts": {
@@ -33,11 +33,11 @@
           "withReadme": true,
           "withVersionFile": false,
           "versionFiles": [
-            "plugin/static-social-hub.php",
-            "plugin/readme.txt"
+            "static-social-hub/static-social-hub.php",
+            "static-social-hub/readme.txt"
           ],
           "include": [
-            "plugin/**"
+            "static-social-hub/**"
           ]
         }
       ],
@@ -46,8 +46,8 @@
         {
           "assets": [
             "CHANGELOG.md",
-            "plugin/static-social-hub.php",
-            "plugin/readme.txt"
+            "static-social-hub/static-social-hub.php",
+            "static-social-hub/readme.txt"
           ],
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
         }

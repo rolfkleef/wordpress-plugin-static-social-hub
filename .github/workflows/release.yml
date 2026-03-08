@@ -14,7 +14,7 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
       - name: Create zip
         run: |
-          zip -r static-social-hub.zip plugin/ \
+          zip -r static-social-hub.zip static-social-hub/ \
             -x "*.git*" -x "*/tests/*" -x "*/.github/*" \
             -x "*/node_modules/*" -x "*.dist"
       - name: Upload to release

@@ -7,7 +7,7 @@
  *               ActivityPub reactions  (likes, boosts, replies) for static pages via
  *               a JavaScript widget.
  *               Requires the ActivityPub and the Webmention plugins to be installed and activated.
- * Version:      0.1.0
+ * Version:      0.2.0
  * Author:       Rolf Kleef
  * Author URI:   https://drostan.org
  * License:      AGPL-3.0-or-later
@@ -23,7 +23,7 @@ namespace StaticSocialHub;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SSH_VERSION', '0.1.0' );
+define( 'SSH_VERSION', '0.2.0' );
 define( 'SSH_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SSH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SSH_REST_NAMESPACE', 'static-social-hub/v1' );

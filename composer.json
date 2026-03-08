@@ -19,7 +19,7 @@
     "wp-phpunit/wp-phpunit": "^6.6"
   },
   "autoload": {
-    "classmap": ["plugin/includes/"]
+    "classmap": ["static-social-hub/includes/"]
   },
   "autoload-dev": {
     "psr-4": {
@@ -33,7 +33,7 @@
     }
   },
   "scripts": {
-    "lint": "parallel-lint --exclude vendor --exclude node_modules plugin/ tests/",
+    "lint": "parallel-lint --exclude vendor --exclude node_modules tests/",
     "cs": "phpcs --standard=phpcs.xml.dist",
     "cs:fix": "phpcbf --standard=phpcs.xml.dist",
     "test": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.unit.xml",
