@@ -146,8 +146,10 @@
     var totalLocal = (data.comments    || []).length;
     var totalAll   = totalFed + totalWm + totalLocal;
 
-    // Reactions bar
-    if (totalLikes + totalBoosts + totalAll > 0) {
+    // Reactions bar — always shown when there are reactions or when a WP admin
+    // button should appear (detected via readable wp-settings-time cookie).
+    var showAdmin = hasWpSettingsCookie() && data.admin;
+    if (totalLikes + totalBoosts + totalAll > 0 || showAdmin) {
       html += '<div class="ssh-reactions-bar">';
       if (totalLikes > 0) {
         html += '<button class="ssh-reaction-toggle" aria-expanded="false" data-target="ssh-likes-list-' + root.id + '">';
@@ -163,6 +165,9 @@
         html += '<button class="ssh-reaction-toggle" aria-expanded="true" data-target="ssh-replies-list-' + root.id + '">';
         html += '\uD83D\uDCAC <span class="ssh-count">' + totalAll + '</span> ' + esc(totalAll === 1 ? t('reply') : t('replies'));
         html += '</button>';
+      }
+      if (showAdmin) {
+        html += data.post_id ? adminEditLinkHtml(data.admin.edit_url) : adminCreateBtnHtml();
       }
       html += '</div>';
     }
@@ -326,6 +331,58 @@
         handleCommentSubmit(form, pageUrl, api, preview);
       });
     }
+
+    var createBtn = root.querySelector('.ssh-admin-create');
+    if (createBtn) {
+      createBtn.addEventListener('click', function () {
+        handleCreateStaticPage(createBtn, pageUrl, api);
+      });
+    }
+  }
+
+  function adminEditLinkHtml(editUrl) {
+    return '<a class="ssh-admin-indicator ssh-admin-exists" href="' + esc(editUrl) + '" target="_blank" rel="noopener noreferrer" title="' + esc(t('Edit static page in WordPress')) + '">' +
+      '\uD83D\uDCC4 ' + esc(t('Edit on Social Hub')) + '</a>';
+  }
+
+  function adminCreateBtnHtml() {
+    return '<button class="ssh-admin-indicator ssh-admin-create">' +
+      '\u2795 ' + esc(t('Create on Social Hub')) + '</button>';
+  }
+
+  function handleCreateStaticPage(btn, pageUrl, api) {
+    btn.disabled = true;
+    btn.textContent = t('Creating\u2026');
+
+    fetch(api + '/static-pages', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: pageUrl }),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.post_id) { throw new Error('no post_id'); }
+        var tmp = document.createElement('div');
+        tmp.innerHTML = adminEditLinkHtml(data.edit_url);
+        btn.parentNode.replaceChild(tmp.firstChild, btn);
+      })
+      .catch(function () {
+        btn.disabled = false;
+        var tmp = document.createElement('div');
+        tmp.innerHTML = adminCreateBtnHtml();
+        var fresh = tmp.firstChild;
+        btn.className = fresh.className;
+        btn.textContent = fresh.textContent;
+      });
+  }
+
+  function hasWpSettingsCookie() {
+    // wp-settings-time-{userId} is set by WordPress for every logged-in user
+    // and is readable by JS (not HttpOnly), making it a reliable session proxy.
+    return document.cookie.split(';').some(function (c) {
+      return c.trim().indexOf('wp-settings-time') === 0;
+    });
   }
 
   function handleToggle(e) {
@@ -462,6 +519,9 @@
       '.ssh-reaction-toggle{background:none;border:1px solid var(--ssh-border);border-radius:4px;padding:.25em .6em;cursor:pointer;color:var(--ssh-text);font-size:.9rem;transition:background .15s}',
       '.ssh-reaction-toggle:hover,.ssh-reaction-toggle[aria-expanded="true"]{background:var(--ssh-border)}',
       '.ssh-count{font-weight:600}',
+      '.ssh-admin-indicator{margin-left:auto;font-size:.8rem;padding:.2em .55em;border-radius:3px;border:1px dashed var(--ssh-border);background:none;color:var(--ssh-text-muted);text-decoration:none;cursor:pointer;font-family:inherit;white-space:nowrap;transition:color .15s,border-color .15s}',
+      '.ssh-admin-indicator:hover{color:var(--ssh-link);border-color:var(--ssh-link)}',
+      '.ssh-admin-indicator:disabled{opacity:.55;cursor:not-allowed}',
       '.ssh-avatar-list{overflow:hidden}',
       '.ssh-collapsed{display:none}',
       '.ssh-avatars{list-style:none;margin:0;padding:.5em 0;display:flex;flex-wrap:wrap;gap:.4em}',

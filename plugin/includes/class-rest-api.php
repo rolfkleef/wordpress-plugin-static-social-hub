@@ -93,12 +93,76 @@ class REST_API {
 				),
 			)
 		);
+
+		register_rest_route(
+			SSH_REST_NAMESPACE,
+			'/static-pages',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( self::class, 'create_static_page_post' ),
+					'permission_callback' => '__return_true',
+					'args'                => array(
+						'url' => array(
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'esc_url_raw',
+						),
+					),
+				),
+				array(
+					'methods'             => \WP_REST_Server::ALLMETHODS,
+					'callback'            => array( self::class, 'handle_preflight' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 	}
 
 	// -------------------------------------------------------------------------
-	// GET /reactions
+	// POST /static-pages
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Finds or creates a static_pages post for the given URL and returns its
+	 * post_id and edit_url. The URL must belong to the configured static site.
+	 * No authentication required — URL validation is the guard.
+	 *
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function create_static_page_post( \WP_REST_Request $request ) {
+		$url = $request->get_param( 'url' );
+
+		if ( ! Static_Post::is_static_url( $url ) ) {
+			return new \WP_Error(
+				'ssh_invalid_url',
+				__( 'The URL does not belong to the configured static site.', 'static-social-hub' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$post_id = Static_Post::find_static_page( $url );
+
+		if ( ! $post_id ) {
+			$post_id = Static_Post::create_static_page( $url );
+		}
+
+		if ( ! $post_id ) {
+			return new \WP_Error(
+				'ssh_create_failed',
+				__( 'Could not create the static page.', 'static-social-hub' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return rest_ensure_response( array(
+			'post_id'  => $post_id,
+			'edit_url' => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+		) );
+	}
+
+	// -------------------------------------------------------------------------
 	/**
 	 * Returns all reactions (comments, webmentions, AP likes/boosts/replies) for a static URL.
 	 *
@@ -129,6 +193,7 @@ class REST_API {
 		);
 
 		if ( ! $post_id ) {
+			$response_data['admin'] = array();
 			return rest_ensure_response( $response_data );
 		}
 
@@ -148,6 +213,12 @@ class REST_API {
 			$shaped = self::shape_comment( $comment, $bucket );
 			$response_data[ $bucket ][] = $shaped;
 		}
+
+		// Always include admin URLs so the JS widget can show an edit button when
+		// it detects a WP session cookie. WP enforces auth itself when the link is opened.
+		$response_data['admin'] = array(
+			'edit_url' => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+		);
 
 		return rest_ensure_response( $response_data );
 	}
