@@ -75,17 +75,17 @@ class Static_Post {
 	 * @return int|false New post ID or false on failure.
 	 */
 	public static function create_static_page( $static_url ) {
-		$target_path = self::normalise_path( $static_url );
+		$post_title = self::fetch_page_title( $static_url ) ?? sprintf( '[Title unavailable: %s]', self::normalise_path( $static_url ) );
 
 		$new_id = wp_insert_post(
 			array(
 				'post_type'      => 'static_pages',
-				'post_title'     => $target_path,
+				'post_title'     => $post_title,
 				'post_status'    => 'draft',
-				'post_name'      => self::path_to_slug( $target_path ),
 				'comment_status' => 'open',
 				'meta_input'     => array(
-					'_activitypub_canonical_url' => $static_url,
+					'_activitypub_canonical_url'     => $static_url,
+					'activitypub_content_visibility' => ssh_get_default_fediverse_visibility(),
 				),
 			)
 		);
@@ -95,6 +95,34 @@ class Static_Post {
 		}
 
 		return $new_id;
+	}
+
+	/**
+	 * Fetches the <title> of a static page via HTTP. Returns null on failure.
+	 *
+	 * @param string $url
+	 * @return string|null
+	 */
+	private static function fetch_page_title( $url ) {
+		$response = wp_remote_get( $url, array( 'timeout' => 5 ) );
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return null;
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		if ( ! preg_match( '/<title[^>]*>\s*(.*?)\s*<\/title>/is', $body, $matches ) ) {
+			return null;
+		}
+
+		$title = html_entity_decode( $matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		if ( ssh_title_first_segment() ) {
+			// Split on common title separators (–, —, -, |, :) and keep the first part.
+			$parts = preg_split( '/\s*[–—\-|:]\s*/', $title, 2 );
+			$title = trim( $parts[0] );
+		}
+
+		return $title ?: null;
 	}
 
 	/**
@@ -170,19 +198,4 @@ class Static_Post {
 		return '/' === $path ? '/' : rtrim( $path, '/' );
 	}
 
-	/**
-	 * Converts a path to a URL-safe slug (max 190 chars to stay within DB limits).
-	 *
-	 * @param string $path
-	 * @return string
-	 */
-	private static function path_to_slug( $path ) {
-		$slug = trim( $path, '/' );
-		$slug = str_replace( '/', '--', $slug );
-		$slug = sanitize_title( $slug );
-		if ( strlen( $slug ) > 190 ) {
-			$slug = substr( $slug, 0, 150 ) . '-' . md5( $path );
-		}
-		return $slug ?: 'root';
-	}
 }

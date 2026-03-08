@@ -63,6 +63,28 @@ function ssh_get_cors_origin() {
 	return $saved ? rtrim( $saved, '/' ) : ssh_get_static_site_url();
 }
 
+/**
+ * Returns true when static page titles should be trimmed to their first segment.
+ *
+ * @return bool
+ */
+function ssh_title_first_segment() {
+	return (bool) get_option( 'ssh_title_first_segment', false );
+}
+
+/**
+ * Returns the default Fediverse visibility for newly created static page posts.
+ * Values mirror ActivityPub's activitypub_content_visibility meta:
+ *   ''            = public
+ *   'quiet_public' = federated but not boosted
+ *   'local'        = do not federate
+ *
+ * @return string
+ */
+function ssh_get_default_fediverse_visibility() {
+	return get_option( 'ssh_default_fediverse_visibility', 'local' );
+}
+
 // Bootstrap all components.
 Static_Post::init();
 ActivityPub_Bridge::init();

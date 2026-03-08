@@ -288,6 +288,50 @@ JS;
 			'ssh_main_section'
 		);
 
+		// ---- New static page settings ---------------------------------------
+		register_setting(
+			'ssh_settings',
+			'ssh_title_first_segment',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => array( self::class, 'sanitize_checkbox_option' ),
+				'default'           => false,
+			)
+		);
+
+		register_setting(
+			'ssh_settings',
+			'ssh_default_fediverse_visibility',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_fediverse_visibility_option' ),
+				'default'           => 'local',
+			)
+		);
+
+		add_settings_section(
+			'ssh_new_page_section',
+			__( 'New Static Page Defaults', 'static-social-hub' ),
+			array( self::class, 'render_new_page_section_description' ),
+			'static-social-hub'
+		);
+
+		add_settings_field(
+			'ssh_title_first_segment',
+			__( 'Trim page titles', 'static-social-hub' ),
+			array( self::class, 'render_title_first_segment_field' ),
+			'static-social-hub',
+			'ssh_new_page_section'
+		);
+
+		add_settings_field(
+			'ssh_default_fediverse_visibility',
+			__( 'Fediverse visibility', 'static-social-hub' ),
+			array( self::class, 'render_default_fediverse_visibility_field' ),
+			'static-social-hub',
+			'ssh_new_page_section'
+		);
+
 		// ---- Appearance settings --------------------------------------------
 		register_setting(
 			'ssh_appearance_settings',
@@ -567,6 +611,45 @@ JS;
 		       class="regular-text">
 		<p class="description">
 			<?php esc_html_e( 'The origin that is allowed to make cross-origin requests to the REST API. Defaults to the static site URL above.', 'static-social-hub' ); ?>
+		</p>
+		<?php
+	}
+
+	public static function render_new_page_section_description() {
+		echo '<p>' . esc_html__( 'Settings applied whenever a new static page post is created automatically (via webmention or the widget).', 'static-social-hub' ) . '</p>';
+	}
+
+	public static function render_title_first_segment_field() {
+		$value = get_option( 'ssh_title_first_segment', false );
+		?>
+		<input type="checkbox" name="ssh_title_first_segment" id="ssh_title_first_segment"
+		       value="1" <?php checked( $value, 1 ); ?>>
+		<label for="ssh_title_first_segment">
+			<?php esc_html_e( 'Use only the first segment of the HTML &lt;title&gt; when creating static pages from existing URLs', 'static-social-hub' ); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e( 'Many page titles include the site name (e.g. "My Post – My Site"). Enable this to strip everything after the first separator (–, —, -, |, :) and keep only the page-specific part.', 'static-social-hub' ); ?>
+		</p>
+		<?php
+	}
+
+	public static function render_default_fediverse_visibility_field() {
+		$value   = get_option( 'ssh_default_fediverse_visibility', '' );
+		$options = array(
+			''             => __( 'Public', 'static-social-hub' ),
+			'quiet_public' => __( 'Quiet public (federated but not boosted)', 'static-social-hub' ),
+			'local'        => __( 'Do not federate', 'static-social-hub' ),
+		);
+		?>
+		<select name="ssh_default_fediverse_visibility" id="ssh_default_fediverse_visibility">
+			<?php foreach ( $options as $key => $label ) : ?>
+				<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $value, $key ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<p class="description">
+			<?php esc_html_e( 'Fediverse visibility set on newly created static page posts. Can be changed per-post in the Fediverse ⁂ sidebar panel.', 'static-social-hub' ); ?>
 		</p>
 		<?php
 	}
@@ -981,6 +1064,14 @@ JS;
 			}
 		}
 		return '';
+	}
+
+	public static function sanitize_checkbox_option( $value ) {
+		return $value ? 1 : 0;
+	}
+
+	public static function sanitize_fediverse_visibility_option( $value ) {
+		return in_array( $value, array( '', 'quiet_public', 'local' ), true ) ? $value : 'local';
 	}
 
 	public static function sanitize_theme_option( $value ) {
