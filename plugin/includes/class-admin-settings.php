@@ -58,7 +58,7 @@ class Admin_Settings {
 	 * @param \WP_Post $post
 	 */
 	public static function render_static_url_meta_box( $post ) {
-		$url = get_post_meta( $post->ID, '_static_url', true );
+		$url = get_post_meta( $post->ID, '_activitypub_canonical_url', true );
 		if ( $url ) {
 			echo '<p style="word-break:break-all"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $url ) . '</a></p>';
 		} else {
@@ -103,7 +103,7 @@ class Admin_Settings {
 
 		$post_options = array();
 		foreach ( $static_pages as $pid ) {
-			$static_url = get_post_meta( $pid, '_static_url', true );
+			$static_url = get_post_meta( $pid, '_activitypub_canonical_url', true );
 			if ( ! $static_url ) {
 				$static_url = ssh_get_static_site_url() . get_post_field( 'post_title', $pid );
 			}
@@ -631,7 +631,7 @@ JS;
 						<select id="ssh-preview-select" style="max-width:100%;min-width:300px;">
 							<option value=""><?php esc_html_e( '— select a static site page —', 'static-social-hub' ); ?></option>
 							<?php foreach ( $static_pages as $pid ) :
-								$static_url = get_post_meta( $pid, '_static_url', true );
+								$static_url = get_post_meta( $pid, '_activitypub_canonical_url', true );
 								if ( ! $static_url ) {
 									$static_url = ssh_get_static_site_url() . get_post_field( 'post_title', $pid );
 								}

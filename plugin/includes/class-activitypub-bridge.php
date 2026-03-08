@@ -1,10 +1,9 @@
 <?php
 /**
- * Integrates the webmention_static site page type with the ActivityPub plugin.
+ * Integrates the static_pages post type with the ActivityPub plugin.
  *
- * - Registers static_pages as an ActivityPub-supported post type.
- * - Ensures the _activitypub_canonical_url meta is set to the static URL whenever a static site page
- *   post is saved, so ActivityPub federates with the static page URL as the object id/url.
+ * Registers static_pages as an ActivityPub-supported post type so the plugin
+ * federates these posts using _activitypub_canonical_url as the object id/url.
  *
  * @package StaticSocialHub
  */
@@ -31,11 +30,6 @@ class ActivityPub_Bridge {
 		add_filter( 'option_activitypub_support_post_types', array( self::class, 'add_static_page_type' ) );
 		// Also call add_post_type_support directly at a later init priority as a belt-and-suspenders.
 		add_action( 'init', array( self::class, 'add_post_type_support_direct' ), 20 );
-
-		// Ensure _activitypub_canonical_url is always in sync with _static_url.
-		add_action( 'save_post_static_pages', array( self::class, 'sync_canonical_url' ), 10, 2 );
-		add_action( 'updated_post_meta', array( self::class, 'on_static_url_meta_updated' ), 10, 4 );
-		add_action( 'added_post_meta', array( self::class, 'on_static_url_meta_updated' ), 10, 4 );
 	}
 
 	/**
@@ -57,40 +51,5 @@ class ActivityPub_Bridge {
 			$post_types[] = 'static_pages';
 		}
 		return $post_types;
-	}
-
-	/**
-	 * Syncs _activitypub_canonical_url with _static_url on post save.
-	 *
-	 * @param int      $post_id
-	 * @param \WP_Post $post
-	 */
-	public static function sync_canonical_url( $post_id, $post ) {
-		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
-			return;
-		}
-
-		$static_url = get_post_meta( $post_id, '_static_url', true );
-		if ( $static_url ) {
-			update_post_meta( $post_id, '_activitypub_canonical_url', $static_url );
-		}
-	}
-
-	/**
-	 * Fires when _static_url post meta is added or updated, keeping the AP canonical URL in sync.
-	 *
-	 * @param int    $meta_id
-	 * @param int    $post_id
-	 * @param string $meta_key
-	 * @param mixed  $meta_value
-	 */
-	public static function on_static_url_meta_updated( $meta_id, $post_id, $meta_key, $meta_value ) {
-		if ( '_static_url' !== $meta_key ) {
-			return;
-		}
-		if ( 'static_pages' !== get_post_type( $post_id ) ) {
-			return;
-		}
-		update_post_meta( $post_id, '_activitypub_canonical_url', $meta_value );
 	}
 }

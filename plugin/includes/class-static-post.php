@@ -60,21 +60,9 @@ class Static_Post {
 			return $post_id;
 		}
 
-		$target_path = self::normalise_path( $target );
-
-		// Look for an existing static site page.
-		$existing = get_posts(
-			array(
-				'post_type'      => 'static_pages',
-				'title'          => $target_path,
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'post_status'    => array( 'publish', 'pending', 'draft' ),
-			)
-		);
-
+		$existing = self::query_by_static_url( $target );
 		if ( $existing ) {
-			return $existing[0];
+			return $existing;
 		}
 
 		return self::create_static_page( $target );
@@ -97,7 +85,7 @@ class Static_Post {
 				'post_name'      => self::path_to_slug( $target_path ),
 				'comment_status' => 'open',
 				'meta_input'     => array(
-					'_static_url' => $static_url,
+					'_activitypub_canonical_url' => $static_url,
 				),
 			)
 		);
@@ -105,10 +93,6 @@ class Static_Post {
 		if ( is_wp_error( $new_id ) || ! $new_id ) {
 			return false;
 		}
-
-		// Immediately set the ActivityPub canonical URL so the AP plugin federates
-		// this post with the static URL as its object id/url.
-		update_post_meta( $new_id, '_activitypub_canonical_url', $static_url );
 
 		return $new_id;
 	}
@@ -124,19 +108,25 @@ class Static_Post {
 			return false;
 		}
 
-		$target_path = self::normalise_path( $static_url );
+		return self::query_by_static_url( $static_url );
+	}
 
-		$existing = get_posts(
-			array(
-				'post_type'      => 'static_pages',
-				'title'          => $target_path,
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'post_status'    => array( 'publish', 'pending', 'draft' ),
-			)
-		);
-
-		return $existing ? $existing[0] : false;
+	/**
+	 * Looks up a static_pages post by its _activitypub_canonical_url meta value.
+	 *
+	 * @param string $static_url Full static page URL.
+	 * @return int|false Post ID or false.
+	 */
+	private static function query_by_static_url( $static_url ) {
+		$results = get_posts( array(
+			'post_type'      => 'static_pages',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'post_status'    => array( 'publish', 'pending', 'draft' ),
+			'meta_key'       => '_activitypub_canonical_url',
+			'meta_value'     => $static_url,
+		) );
+		return $results ? $results[0] : false;
 	}
 
 	/**
