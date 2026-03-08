@@ -19,7 +19,7 @@
     "wp-phpunit/wp-phpunit": "^6.6"
   },
   "autoload": {
-    "classmap": ["plugin/includes/"]
+    "classmap": ["static-social-hub/includes/"]
   },
   "autoload-dev": {
     "psr-4": {

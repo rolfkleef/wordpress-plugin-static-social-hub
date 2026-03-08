@@ -19,7 +19,7 @@
 
   <filter>
     <whitelist>
-      <directory>plugin/includes</directory>
+      <directory>static-social-hub/includes</directory>
     </whitelist>
   </filter>
 

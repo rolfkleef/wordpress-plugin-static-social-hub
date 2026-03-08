@@ -1,7 +1,7 @@
 === Static Social Hub ===
 Contributors: rolfkleef
 Tags: static, activitypub, webmention, comments, widget
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 Tested up to: 6.9
 Requires PHP: 7.4
 License: AGPL-3.0-or-later
@@ -77,6 +77,17 @@ All comments and reactions are stored in your WordPress database as standard Wor
 comments, associated with a custom post type "Static Pages".
 
 == Changelog ==
+
+= 0.2.0 =
+First release as a Zip file. This should make it possible to install the plugin on your own Wordpress website by uploading the Zip file.
+
+- The changelog is not automatically generated yet.
+- The plugin does the primary work of offering a styled widget that you can include in your static pages.
+- It builds on the Webmention plugin and extends it, to register existing pages on a static site.
+- These pages can receive Webmentions and ActivityPub reactions as Wordpress comments.
+- Newly accepted URLs will become drafts of the custom post type Static Pages. You can use this to send out announcements about a static page: when you publish the static page, the ActivityPub plugin will take care of that.
+- The WP-Admin settings page offers a few options and can show a demo and a preview of an existing page.
+- The first work on testing is there.
 
 = 0.1.0 =
 *   Initial release.

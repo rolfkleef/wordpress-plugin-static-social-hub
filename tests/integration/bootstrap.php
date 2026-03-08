@@ -31,7 +31,7 @@ require_once $_tests_dir . '/includes/functions.php';
 // is only required when the muplugins_loaded hook fires, by which point
 // WordPress has already defined ABSPATH.
 tests_add_filter( 'muplugins_loaded', function () {
-	require dirname( __DIR__, 2 ) . '/plugin/static-social-hub.php';
+	require dirname( __DIR__, 2 ) . '/static-social-hub/static-social-hub.php';
 } );
 
 require $_tests_dir . '/includes/bootstrap.php';
