@@ -132,33 +132,16 @@ class REST_API {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function create_static_page_post( \WP_REST_Request $request ) {
-		$url = $request->get_param( 'url' );
+		$result = Static_Post::find_or_create( $request->get_param( 'url' ) );
 
-		if ( ! Static_Post::is_static_url( $url ) ) {
-			return new \WP_Error(
-				'ssh_invalid_url',
-				__( 'The URL does not belong to the configured static site.', 'static-social-hub' ),
-				array( 'status' => 400 )
-			);
-		}
-
-		$post_id = Static_Post::find_static_page( $url );
-
-		if ( ! $post_id ) {
-			$post_id = Static_Post::create_static_page( $url );
-		}
-
-		if ( ! $post_id ) {
-			return new \WP_Error(
-				'ssh_create_failed',
-				__( 'Could not create the static page.', 'static-social-hub' ),
-				array( 'status' => 500 )
-			);
+		if ( is_wp_error( $result ) ) {
+			$result->add_data( array( 'status' => 400 ) );
+			return $result;
 		}
 
 		return rest_ensure_response( array(
-			'post_id'  => $post_id,
-			'edit_url' => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+			'post_id'  => $result,
+			'edit_url' => admin_url( 'post.php?post=' . $result . '&action=edit' ),
 		) );
 	}
 

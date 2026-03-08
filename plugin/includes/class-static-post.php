@@ -50,37 +50,60 @@ class Static_Post {
 	 * @return int|false
 	 */
 	public static function resolve_post_id( $post_id, $target ) {
-		// If Webmention already resolved a real WordPress post, leave it alone.
 		if ( $post_id ) {
 			return $post_id;
 		}
 
-		// Only intercept URLs that belong to the configured static site.
-		if ( ! self::is_static_url( $target ) ) {
-			return $post_id;
+		$result = self::find_or_create( $target );
+		return is_wp_error( $result ) ? $post_id : $result;
+	}
+
+	/**
+	 * Finds an existing static page for a URL, or creates one if it passes all
+	 * validation checks. Returns a WP_Error describing the first failing check.
+	 *
+	 * @param string $url
+	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
+	 */
+	public static function find_or_create( $url ) {
+		if ( ! self::is_static_url( $url ) ) {
+			return new \WP_Error( 'ssh_invalid_url', __( 'URL does not belong to the configured static site.', 'static-social-hub' ) );
 		}
 
-		$existing = self::query_by_static_url( $target );
+		if ( self::is_wordpress_url( $url ) ) {
+			return new \WP_Error( 'ssh_wordpress_url', __( 'URL belongs to the WordPress site.', 'static-social-hub' ) );
+		}
+
+		$existing = self::query_by_static_url( $url );
 		if ( $existing ) {
 			return $existing;
 		}
 
-		return self::create_static_page( $target );
+		$title = self::fetch_page_title( $url );
+		if ( null === $title ) {
+			return new \WP_Error( 'ssh_not_found', __( 'Static page returned 404.', 'static-social-hub' ) );
+		}
+
+		$post_id = self::create_static_page( $url, $title ?: sprintf( '[Title unavailable: %s]', self::normalise_path( $url ) ) );
+		if ( ! $post_id ) {
+			return new \WP_Error( 'ssh_create_failed', __( 'Could not create the static page.', 'static-social-hub' ) );
+		}
+
+		return $post_id;
 	}
 
 	/**
 	 * Creates a new static site page for a static URL.
 	 *
 	 * @param string $static_url Full static page URL.
+	 * @param string $title      Post title to use.
 	 * @return int|false New post ID or false on failure.
 	 */
-	public static function create_static_page( $static_url ) {
-		$post_title = self::fetch_page_title( $static_url ) ?? sprintf( '[Title unavailable: %s]', self::normalise_path( $static_url ) );
-
+	public static function create_static_page( $static_url, $title ) {
 		$new_id = wp_insert_post(
 			array(
 				'post_type'      => 'static_pages',
-				'post_title'     => $post_title,
+				'post_title'     => $title,
 				'post_status'    => 'draft',
 				'comment_status' => 'open',
 				'meta_input'     => array(
@@ -90,39 +113,57 @@ class Static_Post {
 			)
 		);
 
-		if ( is_wp_error( $new_id ) || ! $new_id ) {
-			return false;
-		}
-
-		return $new_id;
+		return ( is_wp_error( $new_id ) || ! $new_id ) ? false : $new_id;
 	}
 
 	/**
-	 * Fetches the <title> of a static page via HTTP. Returns null on failure.
+	 * Fetches a URL and returns its page title.
+	 *
+	 * Return values:
+	 *   string  – title found and extracted
+	 *   false   – fetch succeeded but no <title> tag present
+	 *   null    – page returned 404 (caller should not create a post)
+	 *
+	 * Any other HTTP error or timeout returns false (fetch failed, page may be
+	 * temporarily unavailable — still worth creating the post).
 	 *
 	 * @param string $url
-	 * @return string|null
+	 * @return string|false|null
 	 */
-	private static function fetch_page_title( $url ) {
+	public static function fetch_page_title( $url ) {
 		$response = wp_remote_get( $url, array( 'timeout' => 5 ) );
-		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+		$status   = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+
+		if ( 404 === $status ) {
 			return null;
 		}
 
-		$body = wp_remote_retrieve_body( $response );
-		if ( ! preg_match( '/<title[^>]*>\s*(.*?)\s*<\/title>/is', $body, $matches ) ) {
-			return null;
+		if ( 200 !== $status ) {
+			return false;
+		}
+
+		return self::extract_title( wp_remote_retrieve_body( $response ) );
+	}
+
+	/**
+	 * Extracts and returns the trimmed <title> from an HTML string, or false if absent.
+	 *
+	 * @param string $html
+	 * @return string|false
+	 */
+	private static function extract_title( $html ) {
+		if ( ! preg_match( '/<title[^>]*>\s*(.*?)\s*<\/title>/is', $html, $matches ) ) {
+			return false;
 		}
 
 		$title = html_entity_decode( $matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 
 		if ( ssh_title_first_segment() ) {
-			// Split on common title separators (–, —, -, |, :) and keep the first part.
 			$parts = preg_split( '/\s*[–—\-|:]\s*/', $title, 2 );
 			$title = trim( $parts[0] );
 		}
 
-		return $title ?: null;
+		return $title ?: false;
 	}
 
 	/**
@@ -164,27 +205,20 @@ class Static_Post {
 	 * @return bool
 	 */
 	public static function is_static_url( $url ) {
-		$static_base = ssh_get_static_site_url();
-		// Compare scheme + host (+ optional port).
-		$parsed_url    = wp_parse_url( $url );
-		$parsed_static = wp_parse_url( $static_base );
+		$static_base = rtrim( ssh_get_static_site_url(), '/' ) . '/';
+		return 0 === strpos( $url, $static_base );
+	}
 
-		if ( empty( $parsed_url['host'] ) || empty( $parsed_static['host'] ) ) {
-			return false;
-		}
-
-		$url_host    = strtolower( $parsed_url['host'] );
-		$static_host = strtolower( $parsed_static['host'] );
-
-		$url_scheme    = strtolower( $parsed_url['scheme'] ?? 'https' );
-		$static_scheme = strtolower( $parsed_static['scheme'] ?? 'https' );
-
-		$url_port    = $parsed_url['port'] ?? null;
-		$static_port = $parsed_static['port'] ?? null;
-
-		return $url_host === $static_host
-			&& $url_scheme === $static_scheme
-			&& $url_port === $static_port;
+	/**
+	 * Checks whether a URL belongs to the WordPress site itself by testing
+	 * whether it starts with the WordPress installation URL (site_url()).
+	 *
+	 * @param string $url
+	 * @return bool
+	 */
+	public static function is_wordpress_url( $url ) {
+		$wp_base = rtrim( site_url(), '/' ) . '/';
+		return 0 === strpos( $url, $wp_base );
 	}
 
 	/**
