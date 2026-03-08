@@ -1,6 +1,6 @@
 <?php
 /**
- * Registers the webmention_shell custom post type and hooks into the Webmention plugin's
+ * Registers the static_pages custom post type and hooks into the Webmention plugin's
  * URL-to-post-ID resolution to map static page URLs to static site pages.
  *
  * @package StaticSocialHub
@@ -24,7 +24,7 @@ class Static_Post {
 	 */
 	public static function register_post_type() {
 		register_post_type(
-			'webmention_shell',
+			'static_pages',
 			array(
 				'label'           => __( 'Static Site Pages', 'static-social-hub' ),
 				'public'          => true,
@@ -65,7 +65,7 @@ class Static_Post {
 		// Look for an existing static site page.
 		$existing = get_posts(
 			array(
-				'post_type'      => 'webmention_shell',
+				'post_type'      => 'static_pages',
 				'title'          => $target_path,
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
@@ -91,7 +91,7 @@ class Static_Post {
 
 		$new_id = wp_insert_post(
 			array(
-				'post_type'      => 'webmention_shell',
+				'post_type'      => 'static_pages',
 				'post_title'     => $target_path,
 				'post_status'    => 'publish',
 				'post_name'      => self::path_to_slug( $target_path ),
@@ -128,7 +128,7 @@ class Static_Post {
 
 		$existing = get_posts(
 			array(
-				'post_type'      => 'webmention_shell',
+				'post_type'      => 'static_pages',
 				'title'          => $target_path,
 				'posts_per_page' => 1,
 				'fields'         => 'ids',

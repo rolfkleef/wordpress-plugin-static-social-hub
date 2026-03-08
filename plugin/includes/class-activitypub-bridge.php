@@ -2,7 +2,7 @@
 /**
  * Integrates the webmention_static site page type with the ActivityPub plugin.
  *
- * - Registers webmention_shell as an ActivityPub-supported post type.
+ * - Registers static_pages as an ActivityPub-supported post type.
  * - Ensures the _activitypub_canonical_url meta is set to the static URL whenever a static site page
  *   post is saved, so ActivityPub federates with the static page URL as the object id/url.
  *
@@ -25,7 +25,7 @@ class ActivityPub_Bridge {
 			return;
 		}
 
-		// Register webmention_shell as an ActivityPub-supported post type by hooking into
+		// Register static_pages as an ActivityPub-supported post type by hooking into
 		// the option filter. ActivityPub iterates this option during its own init hook (priority 10)
 		// to call add_post_type_support(), so we inject our CPT before that lookup.
 		add_filter( 'option_activitypub_support_post_types', array( self::class, 'add_static_page_type' ) );
@@ -33,28 +33,28 @@ class ActivityPub_Bridge {
 		add_action( 'init', array( self::class, 'add_post_type_support_direct' ), 20 );
 
 		// Ensure _activitypub_canonical_url is always in sync with _static_url.
-		add_action( 'save_post_webmention_shell', array( self::class, 'sync_canonical_url' ), 10, 2 );
+		add_action( 'save_post_static_pages', array( self::class, 'sync_canonical_url' ), 10, 2 );
 		add_action( 'updated_post_meta', array( self::class, 'on_static_url_meta_updated' ), 10, 4 );
 		add_action( 'added_post_meta', array( self::class, 'on_static_url_meta_updated' ), 10, 4 );
 	}
 
 	/**
-	 * Directly registers ActivityPub support on the webmention_static site page type.
+	 * Directly registers ActivityPub support on the static_pages post type.
 	 * This runs on init priority 20, after both WP and ActivityPub have initialised.
 	 */
 	public static function add_post_type_support_direct() {
-		add_post_type_support( 'webmention_shell', 'activitypub' );
+		add_post_type_support( 'static_pages', 'activitypub' );
 	}
 
 	/**
-	 * Adds webmention_shell to the list of post types the ActivityPub plugin federates.
+	 * Adds static_pages to the list of post types the ActivityPub plugin federates.
 	 *
 	 * @param string[] $post_types
 	 * @return string[]
 	 */
 	public static function add_static_page_type( $post_types ) {
-		if ( ! in_array( 'webmention_shell', $post_types, true ) ) {
-			$post_types[] = 'webmention_shell';
+		if ( ! in_array( 'static_pages', $post_types, true ) ) {
+			$post_types[] = 'static_pages';
 		}
 		return $post_types;
 	}
@@ -88,7 +88,7 @@ class ActivityPub_Bridge {
 		if ( '_static_url' !== $meta_key ) {
 			return;
 		}
-		if ( 'webmention_shell' !== get_post_type( $post_id ) ) {
+		if ( 'static_pages' !== get_post_type( $post_id ) ) {
 			return;
 		}
 		update_post_meta( $post_id, '_activitypub_canonical_url', $meta_value );

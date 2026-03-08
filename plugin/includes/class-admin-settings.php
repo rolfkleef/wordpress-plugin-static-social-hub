@@ -59,7 +59,7 @@ class Admin_Settings {
 
 		// Build static site page list for the General page preview dropdown.
 		$static_pages = get_posts( array(
-			'post_type'      => 'webmention_shell',
+			'post_type'      => 'static_pages',
 			'post_status'    => array( 'publish', 'pending', 'draft' ),
 			'posts_per_page' => 200,
 			'orderby'        => 'title',
@@ -565,7 +565,7 @@ JS;
 	 */
 	public static function render_preview_section() {
 		$static_pages = get_posts( array(
-			'post_type'      => 'webmention_shell',
+			'post_type'      => 'static_pages',
 			'post_status'    => array( 'publish', 'pending', 'draft' ),
 			'posts_per_page' => 200,
 			'orderby'        => 'title',
