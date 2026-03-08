@@ -85,7 +85,7 @@ jobs:
 
       - name: Run integration tests
         env:
-          WORDPRESS_DB_HOST: mysql
+          WORDPRESS_DB_HOST: 127.0.0.1
           WORDPRESS_DB_USER: root
           WORDPRESS_DB_PASSWORD: ''
           WORDPRESS_DB_NAME: wordpress_test
