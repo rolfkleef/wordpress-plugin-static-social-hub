@@ -192,8 +192,12 @@ class Static_Post {
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
 			'post_status'    => array( 'publish', 'pending', 'draft' ),
-			'meta_key'       => '_activitypub_canonical_url',
-			'meta_value'     => $static_url,
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
+					'key'   => '_activitypub_canonical_url',
+					'value' => $static_url,
+				),
+			),
 		) );
 		return $results ? $results[0] : false;
 	}

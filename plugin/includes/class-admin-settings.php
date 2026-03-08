@@ -402,16 +402,17 @@ JS;
 
 			<h2><?php esc_html_e( 'Embed Code', 'static-social-hub' ); ?></h2>
 			<p><?php esc_html_e( 'Add the following snippet to any static page where you want comments and reactions to appear:', 'static-social-hub' ); ?></p>
-			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;link rel="stylesheet" href="<?php echo $css_url; ?>"&gt;
+			<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- display-only embed example ?>
+			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;link rel="stylesheet" href="<?php echo esc_url( $css_url ); ?>"&gt;
 &lt;div id="ssh-comments"&gt;&lt;/div&gt;
-&lt;script src="<?php echo $widget_url; ?>"
-        data-api="<?php echo $api_base; ?>"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="<?php echo esc_url( $widget_url ); ?>"
+        data-api="<?php echo esc_url( $api_base ); ?>"&gt;&lt;/script&gt;</code></pre>
 			<p class="description">
 				<?php
 				printf(
 					/* translators: %s: REST API base URL */
 					esc_html__( 'The widget auto-detects the current page URL. The REST API is available at %s.', 'static-social-hub' ),
-					'<code>' . $api_base . '</code>'
+					'<code>' . esc_url( $api_base ) . '</code>'
 				);
 				?>
 			</p>
@@ -469,8 +470,8 @@ JS;
 				<strong><?php esc_html_e( 'About this demo:', 'static-social-hub' ); ?></strong>
 				<?php
 				printf(
-					/* translators: %s: demo URL */
 					wp_kses(
+						/* translators: %s: demo URL */
 						__( 'The reactions (likes, boosts, replies, webmentions, and comments) shown below are sample data so you can see how the widget looks. The comment form is live — submissions create real pending comments in WordPress for the demo URL %s.', 'static-social-hub' ),
 						array( 'code' => array() )
 					),
