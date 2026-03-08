@@ -39,7 +39,7 @@
     "test": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.unit.xml",
     "test:unit": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.unit.xml",
     "test:integration": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.integration.xml",
-    "test:coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --configuration=phpunit.unit.xml --coverage-text",
+    "test:coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --configuration=phpunit.unit.xml",
     "check-all": ["@lint", "@cs", "@test"]
   },
   "scripts-descriptions": {

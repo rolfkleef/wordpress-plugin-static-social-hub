@@ -23,4 +23,9 @@
     </whitelist>
   </filter>
 
+  <logging>
+    <log type="coverage-html" target="tmp/unit-test-coverage-report"/>
+    <log type="coverage-text" target="php://stdout" showOnlySummary="false"/>
+  </logging>
+
 </phpunit>
