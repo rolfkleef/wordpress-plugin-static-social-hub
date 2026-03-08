@@ -139,12 +139,15 @@
   function render(root, data, pageUrl, api, preview) {
     var html = '';
 
-    var totalLikes   = (data.likes   || []).length;
-    var totalBoosts  = (data.boosts  || []).length;
-    var totalReplies = (data.replies || []).length;
+    var totalLikes = (data.likes       || []).length;
+    var totalBoosts = (data.boosts     || []).length;
+    var totalFed   = (data.replies     || []).length;
+    var totalWm    = (data.webmentions || []).length;
+    var totalLocal = (data.comments    || []).length;
+    var totalAll   = totalFed + totalWm + totalLocal;
 
     // Reactions bar
-    if (totalLikes + totalBoosts + totalReplies > 0) {
+    if (totalLikes + totalBoosts + totalAll > 0) {
       html += '<div class="ssh-reactions-bar">';
       if (totalLikes > 0) {
         html += '<button class="ssh-reaction-toggle" aria-expanded="false" data-target="ssh-likes-list-' + root.id + '">';
@@ -156,15 +159,15 @@
         html += '\uD83D\uDD01 <span class="ssh-count">' + totalBoosts + '</span> ' + esc(totalBoosts === 1 ? t('boost') : t('boosts'));
         html += '</button>';
       }
-      if (totalReplies > 0) {
-        html += '<button class="ssh-reaction-toggle" aria-expanded="false" data-target="ssh-replies-list-' + root.id + '">';
-        html += '\uD83D\uDCAC <span class="ssh-count">' + totalReplies + '</span> ' + esc(totalReplies === 1 ? t('fediverse reply') : t('fediverse replies'));
+      if (totalAll > 0) {
+        html += '<button class="ssh-reaction-toggle" aria-expanded="true" data-target="ssh-replies-list-' + root.id + '">';
+        html += '\uD83D\uDCAC <span class="ssh-count">' + totalAll + '</span> ' + esc(totalAll === 1 ? t('reply') : t('replies'));
         html += '</button>';
       }
       html += '</div>';
     }
 
-    // Likes panel
+    // Likes panel (collapsible avatar grid)
     if (totalLikes > 0) {
       html += '<div id="ssh-likes-list-' + root.id + '" class="ssh-avatar-list ssh-collapsed" aria-hidden="true">';
       html += '<h3 class="ssh-section-title">' + esc(t('Likes')) + '</h3>';
@@ -173,7 +176,7 @@
       html += '</ul></div>';
     }
 
-    // Boosts panel
+    // Boosts panel (collapsible avatar grid)
     if (totalBoosts > 0) {
       html += '<div id="ssh-boosts-list-' + root.id + '" class="ssh-avatar-list ssh-collapsed" aria-hidden="true">';
       html += '<h3 class="ssh-section-title">' + esc(t('Boosts')) + '</h3>';
@@ -182,33 +185,35 @@
       html += '</ul></div>';
     }
 
-    // Fediverse replies panel
-    if (totalReplies > 0) {
-      html += '<div id="ssh-replies-list-' + root.id + '" class="ssh-avatar-list ssh-collapsed" aria-hidden="true">';
-      html += '<h3 class="ssh-section-title">' + esc(t('Fediverse Replies')) + '</h3>';
-      (data.replies || []).forEach(function (item) { html += renderComment(item, 'reply'); });
+    // Unified replies panel: Fediverse + webmentions + local comments, sorted chronologically
+    if (totalAll > 0) {
+      var allReplies = [];
+      (data.replies     || []).forEach(function (item) { allReplies.push({ item: item, type: 'reply' }); });
+      (data.webmentions || []).forEach(function (item) { allReplies.push({ item: item, type: 'webmention' }); });
+      (data.comments    || []).forEach(function (item) { allReplies.push({ item: item, type: 'comment' }); });
+
+      allReplies.sort(function (a, b) {
+        var da = a.item.date || '';
+        var db = b.item.date || '';
+        return da < db ? -1 : da > db ? 1 : 0;
+      });
+
+      html += '<div id="ssh-replies-list-' + root.id + '" class="ssh-avatar-list" aria-hidden="false">';
+      html += '<h3 class="ssh-section-title">' + esc(t('Replies')) + '</h3>';
+      // Legend: show icon + count for each non-zero source type present
+      var legendParts = [];
+      if (totalFed   > 0) { legendParts.push('\uD83C\uDF10 ' + totalFed   + ' ' + esc(t('Fediverse'))); }
+      if (totalWm    > 0) { legendParts.push('\uD83D\uDD17 ' + totalWm    + ' ' + esc(t('webmentions'))); }
+      if (totalLocal > 0) { legendParts.push('\uD83D\uDCAC ' + totalLocal + ' ' + esc(t('local'))); }
+      if (legendParts.length > 1) {
+        html += '<p class="ssh-reply-legend">' + legendParts.join(' <span class="ssh-legend-sep">\u00B7</span> ') + '</p>';
+      }
+      allReplies.forEach(function (entry) { html += renderComment(entry.item, entry.type); });
       html += '</div>';
     }
 
-    // Webmentions
-    if ((data.webmentions || []).length > 0) {
-      html += '<section class="ssh-section ssh-webmentions">';
-      html += '<h3 class="ssh-section-title">' + esc(t('Webmentions')) + '</h3>';
-      (data.webmentions || []).forEach(function (item) { html += renderComment(item, 'webmention'); });
-      html += '</section>';
-    }
-
-    // Comments + form
+    // Comment form (always visible)
     html += '<section class="ssh-section ssh-comments-section">';
-    var commentCount = (data.comments || []).length;
-    html += '<h3 class="ssh-section-title">';
-    html += esc(commentCount === 0 ? t('Leave a comment') : (commentCount === 1 ? t('1 comment') : commentCount + ' ' + t('comments')));
-    html += '</h3>';
-    if (commentCount > 0) {
-      html += '<ol class="ssh-comment-list">';
-      (data.comments || []).forEach(function (item) { html += '<li>' + renderComment(item, 'comment') + '</li>'; });
-      html += '</ol>';
-    }
     html += renderCommentForm(root.id, preview);
     html += '</section>';
 
@@ -240,16 +245,25 @@
       ? '<a href="' + url + '" target="_blank" rel="noopener noreferrer nofollow">' + name + '</a>'
       : name;
 
+    // Type icon: 🌐 Fediverse reply, 🔗 webmention, 💬 local comment
+    var iconMap  = { reply: '\uD83C\uDF10', webmention: '\uD83D\uDD17', comment: '\uD83D\uDCAC' };
+    var labelMap = { reply: t('Fediverse reply'), webmention: t('Webmention'), comment: t('Comment') };
+    var iconHtml = iconMap[type]
+      ? '<span class="ssh-reply-type-icon" aria-label="' + esc(labelMap[type]) + '" title="' + esc(labelMap[type]) + '">' + iconMap[type] + '</span>'
+      : '';
+
     var html = '<article class="ssh-comment ssh-comment-' + type + '">';
     html += '<header class="ssh-comment-header">';
+    html += iconHtml;
     html += '<div class="ssh-comment-avatar">' + renderAvatar(item) + '</div>';
     html += '<div class="ssh-comment-meta">';
     html += '<span class="ssh-comment-author">' + authorHtml + '</span>';
     if (date) {
-      html += ' <time class="ssh-comment-date" datetime="' + esc(item.date) + '">' + esc(date) + '</time>';
-    }
-    if (source) {
-      html += ' <a class="ssh-webmention-source" href="' + source + '" target="_blank" rel="noopener noreferrer">' + esc(t('\u2192 source')) + '</a>';
+      // Link the date to the source post/page for fediverse replies and webmentions.
+      var timeEl = '<time class="ssh-comment-date" datetime="' + esc(item.date) + '">' + esc(date) + '</time>';
+      html += ' ' + (source
+        ? '<a class="ssh-comment-date-link" href="' + source + '" target="_blank" rel="noopener noreferrer">' + timeEl + '</a>'
+        : timeEl);
     }
     html += '</div></header>';
     if (content) {
@@ -431,7 +445,11 @@
       '.ssh-comment-author a{color:var(--ssh-link);text-decoration:none}',
       '.ssh-comment-author a:hover{text-decoration:underline}',
       '.ssh-comment-date{margin-left:.4em;font-size:.85em}',
-      '.ssh-webmention-source{margin-left:.4em;font-size:.85em;color:var(--ssh-link)}',
+      '.ssh-comment-date-link{margin-left:.4em;font-size:.85em;color:var(--ssh-text-muted);text-decoration:none}',
+      '.ssh-comment-date-link:hover{color:var(--ssh-link);text-decoration:underline}',
+      '.ssh-reply-type-icon{float:right;font-size:.95em;opacity:.7;margin-left:.5em;line-height:1.4}',
+      '.ssh-reply-legend{font-size:.82em;color:var(--ssh-text-muted);margin:-.4em 0 .9em;padding:0}',
+      '.ssh-legend-sep{margin:0 .3em;opacity:.5}',
       '.ssh-comment-content{font-size:.95rem;margin:0;white-space:pre-wrap;word-break:break-word}',
       '.ssh-form-wrap{margin-top:1.5em;padding:1em;border:1px solid var(--ssh-border);border-radius:6px;background:var(--ssh-bg2)}',
       '.ssh-form-title{font-size:1rem;font-weight:600;margin:0 0 1em;color:var(--ssh-text)}',

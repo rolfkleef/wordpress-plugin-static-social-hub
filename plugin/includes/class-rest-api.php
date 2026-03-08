@@ -212,13 +212,24 @@ class REST_API {
 			$shaped['content'] = wp_strip_all_tags( $comment->comment_content );
 		}
 
-		// Webmention source URL.
+		// Webmention source URL (the page that sent the webmention).
 		if ( 'webmentions' === $bucket ) {
 			$source = get_comment_meta( $comment->comment_ID, 'webmention_source_url', true );
 			if ( ! $source ) {
 				$source = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_source', true );
 			}
 			$shaped['source'] = $source ?: $comment->comment_author_url;
+		}
+
+		// Fediverse reply: include the ActivityPub post URL so the date can link to it.
+		if ( 'replies' === $bucket ) {
+			$source = get_comment_meta( $comment->comment_ID, 'source_url', true );
+			if ( ! $source ) {
+				$source = get_comment_meta( $comment->comment_ID, 'source_id', true );
+			}
+			if ( $source ) {
+				$shaped['source'] = $source;
+			}
 		}
 
 		return $shaped;

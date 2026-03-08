@@ -864,6 +864,7 @@ JS;
 					'author_url'     => 'https://mastodon.social/@quinn',
 					'author_avatar'  => $av( 'quinn@mastodon.social' ),
 					'date'           => '2025-02-10T10:30:00',
+					'source'         => 'https://mastodon.social/@quinn/113982741000000001',
 					'content'        => 'Really appreciated this post. The observation about the chalk drawing lasting a whole month despite the rain was unexpectedly moving.',
 				),
 				array(
@@ -872,6 +873,7 @@ JS;
 					'author_url'     => 'https://social.coop/@rose',
 					'author_avatar'  => $av( 'rose@social.coop' ),
 					'date'           => '2025-02-12T15:44:00',
+					'source'         => 'https://social.coop/@rose/113997830000000002',
 					'content'        => 'This reminded me of something Robert Macfarlane wrote about attention and slowness. Have you read The Wild Places?',
 				),
 				array(
@@ -880,6 +882,7 @@ JS;
 					'author_url'     => 'https://hachyderm.io/@sam',
 					'author_avatar'  => $av( 'sam@hachyderm.io' ),
 					'date'           => '2025-02-15T08:12:00',
+					'source'         => 'https://hachyderm.io/@sam/114013200000000003',
 					'content'        => 'I started doing this after reading your post — early morning walk, same route each day. It changes how you notice things.',
 				),
 			),
