@@ -12,20 +12,19 @@
     "phpcsstandards/phpcsutils": "^1.0",
     "phpcsstandards/phpcsextra": "^1.2",
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-    "phpunit/phpunit": "^10.0 || ^11.0",
+    "phpunit/phpunit": "^9.6",
     "yoast/phpunit-polyfills": "^2.0",
     "brain/monkey": "^2.6",
     "php-parallel-lint/php-parallel-lint": "^1.4",
     "wp-phpunit/wp-phpunit": "^6.6"
   },
   "autoload": {
-    "psr-4": {
-      "StaticSocialHub\\": "plugin/includes/"
-    }
+    "classmap": ["plugin/includes/"]
   },
   "autoload-dev": {
     "psr-4": {
-      "StaticSocialHub\\Tests\\": "tests/"
+      "StaticSocialHub\\Tests\\Unit\\": "tests/unit/",
+      "StaticSocialHub\\Tests\\Integration\\": "tests/integration/"
     }
   },
   "config": {
@@ -37,16 +36,20 @@
     "lint": "parallel-lint --exclude vendor --exclude node_modules plugin/ tests/",
     "cs": "phpcs --standard=phpcs.xml.dist",
     "cs:fix": "phpcbf --standard=phpcs.xml.dist",
-    "test": "phpunit --configuration=phpunit.xml.dist",
-    "test:coverage": "phpunit --configuration=phpunit.xml.dist --coverage-text",
+    "test": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.unit.xml",
+    "test:unit": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.unit.xml",
+    "test:integration": "php -d xdebug.mode=off vendor/bin/phpunit --configuration=phpunit.integration.xml",
+    "test:coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --configuration=phpunit.unit.xml --coverage-text",
     "check-all": ["@lint", "@cs", "@test"]
   },
   "scripts-descriptions": {
     "lint": "Check PHP parse errors",
     "cs": "Run coding standards checks",
     "cs:fix": "Auto-fix coding standards violations",
-    "test": "Run PHPUnit tests",
-    "test:coverage": "Run PHPUnit tests with coverage report",
+    "test": "Run unit tests (no database required)",
+    "test:unit": "Run unit tests (no database required)",
+    "test:integration": "Run integration tests (requires MySQL, see docs/testing.md)",
+    "test:coverage": "Run unit tests with coverage report",
     "check-all": "Run all checks"
   }
 }

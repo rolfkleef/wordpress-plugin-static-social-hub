@@ -85,6 +85,10 @@ function ssh_get_default_fediverse_visibility() {
 	return get_option( 'ssh_default_fediverse_visibility', 'local' );
 }
 
+add_action( 'plugins_loaded', function () {
+	load_plugin_textdomain( 'static-social-hub', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+} );
+
 // Bootstrap all components.
 Static_Post::init();
 ActivityPub_Bridge::init();

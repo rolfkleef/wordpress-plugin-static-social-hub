@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Composer prod deps
-        run: composer install --no-dev --optimize-autoloader --working-dir=plugin
+        run: composer install --no-dev --optimize-autoloader
       - name: Create zip
         run: |
           zip -r static-social-hub.zip plugin/ \
@@ -20,6 +20,6 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          files: my-plugin.zip
+          files: static-social-hub.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
