@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3']
+        php: ['8.3', '8.4', '8.5']
 
     steps:
       - uses: actions/checkout@v4
@@ -43,8 +43,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3']
-        wp: ['6.9', 'latest']
+        php: ['8.3', '8.4', '8.5']
+        wp: ['latest']
 
     services:
       mysql:
@@ -85,9 +85,9 @@ jobs:
 
       - name: Run integration tests
         env:
-          WP_DB_HOST: 127.0.0.1
-          WP_DB_USER: root
-          WP_DB_PASSWORD: ''
-          WP_DB_NAME: wordpress_test
+          WORDPRESS_DB_HOST: mysql
+          WORDPRESS_DB_USER: root
+          WORDPRESS_DB_PASSWORD: ''
+          WORDPRESS_DB_NAME: wordpress_test
           WP_ABSPATH: /tmp/wordpress
         run: composer test:integration
