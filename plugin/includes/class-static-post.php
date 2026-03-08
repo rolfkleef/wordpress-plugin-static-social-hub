@@ -81,7 +81,7 @@ class Static_Post {
 			array(
 				'post_type'      => 'static_pages',
 				'post_title'     => $target_path,
-				'post_status'    => 'publish',
+				'post_status'    => 'draft',
 				'post_name'      => self::path_to_slug( $target_path ),
 				'comment_status' => 'open',
 				'meta_input'     => array(
