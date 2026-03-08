@@ -30,6 +30,40 @@ class Admin_Settings {
 		add_action( 'admin_init', array( self::class, 'register_settings' ) );
 		add_action( 'admin_notices', array( self::class, 'maybe_show_default_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_preview_assets' ) );
+		add_action( 'add_meta_boxes', array( self::class, 'add_static_url_meta_box' ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Meta box
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Registers a read-only sidebar meta box on static_pages posts showing the
+	 * static site URL as a clickable link.
+	 */
+	public static function add_static_url_meta_box() {
+		add_meta_box(
+			'ssh_static_url',
+			__( 'Static Site URL', 'static-social-hub' ),
+			array( self::class, 'render_static_url_meta_box' ),
+			'static_pages',
+			'side',
+			'high'
+		);
+	}
+
+	/**
+	 * Renders the static URL meta box content.
+	 *
+	 * @param \WP_Post $post
+	 */
+	public static function render_static_url_meta_box( $post ) {
+		$url = get_post_meta( $post->ID, '_static_url', true );
+		if ( $url ) {
+			echo '<p style="word-break:break-all"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $url ) . '</a></p>';
+		} else {
+			echo '<p><em>' . esc_html__( 'No static URL set.', 'static-social-hub' ) . '</em></p>';
+		}
 	}
 
 	// -------------------------------------------------------------------------

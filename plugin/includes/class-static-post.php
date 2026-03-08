@@ -33,7 +33,7 @@ class Static_Post {
 				'menu_position'   => 5,
 				'menu_icon'       => 'dashicons-admin-site-alt3',
 				'show_in_rest'    => true,
-				'supports'        => array( 'title', 'comments', 'custom-fields' ),
+				'supports'        => array( 'title', 'editor', 'comments', 'custom-fields' ),
 				'capability_type' => 'post',
 				'has_archive'     => false,
 				'rewrite'         => false,
