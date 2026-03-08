@@ -12,13 +12,22 @@ namespace StaticSocialHub;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Integrates the static_pages post type with the ActivityPub plugin.
+ */
 class ActivityPub_Bridge {
 
+	/**
+	 * Registers hooks to conditionally enable ActivityPub integration.
+	 */
 	public static function init() {
 		// Only hook if the ActivityPub plugin is active.
 		add_action( 'plugins_loaded', array( self::class, 'maybe_init' ) );
 	}
 
+	/**
+	 * Hooks into ActivityPub if the plugin is active.
+	 */
 	public static function maybe_init() {
 		if ( ! class_exists( '\Activitypub\Activitypub' ) && ! function_exists( '\Activitypub\get_plugin_version' ) ) {
 			return;
@@ -43,7 +52,7 @@ class ActivityPub_Bridge {
 	/**
 	 * Adds static_pages to the list of post types the ActivityPub plugin federates.
 	 *
-	 * @param string[] $post_types
+	 * @param string[] $post_types Post types currently supported by ActivityPub.
 	 * @return string[]
 	 */
 	public static function add_static_page_type( $post_types ) {

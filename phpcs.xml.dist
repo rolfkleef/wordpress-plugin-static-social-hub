@@ -8,7 +8,9 @@
   <rule ref="WordPress"/>
   <rule ref="WordPress.WP.I18n">
     <properties>
-      <property name="text_domain" type="array" value="static-social-hub"/>
+      <property name="text_domain" type="array">
+        <element value="static-social-hub"/>
+      </property>
     </properties>
   </rule>
   <exclude-pattern>*/vendor/*</exclude-pattern>

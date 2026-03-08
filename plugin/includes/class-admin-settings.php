@@ -18,13 +18,19 @@ namespace StaticSocialHub;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Admin settings pages for the Static Social Hub plugin.
+ */
 class Admin_Settings {
 
 	/** Admin hook suffix for the main Settings page (General + Demo tabs). */
-	const HOOK_GENERAL    = 'settings_page_static-social-hub';
+	const HOOK_GENERAL = 'settings_page_static-social-hub';
 	/** Admin hook suffix for the Appearance page under WP Appearance menu. */
 	const HOOK_APPEARANCE = 'appearance_page_static-social-hub-appearance';
 
+	/**
+	 * Registers all admin hooks.
+	 */
 	public static function init() {
 		add_action( 'admin_menu', array( self::class, 'add_menu_page' ) );
 		add_action( 'admin_init', array( self::class, 'register_settings' ) );
@@ -55,7 +61,7 @@ class Admin_Settings {
 	/**
 	 * Renders the static URL meta box content.
 	 *
-	 * @param \WP_Post $post
+	 * @param \WP_Post $post The current static_pages post object.
 	 */
 	public static function render_static_url_meta_box( $post ) {
 		$url = get_post_meta( $post->ID, '_activitypub_canonical_url', true );
@@ -99,14 +105,16 @@ class Admin_Settings {
 		);
 
 		// Build static site page list for the General page preview dropdown.
-		$static_pages = get_posts( array(
-			'post_type'      => 'static_pages',
-			'post_status'    => array( 'publish', 'pending', 'draft' ),
-			'posts_per_page' => 200,
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'fields'         => 'ids',
-		) );
+		$static_pages = get_posts(
+			array(
+				'post_type'      => 'static_pages',
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 100,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			)
+		);
 
 		$post_options = array();
 		foreach ( $static_pages as $pid ) {
@@ -123,21 +131,23 @@ class Admin_Settings {
 
 		wp_add_inline_script(
 			'ssh-widget',
-			'window.SSH_ADMIN = ' . wp_json_encode( array(
-				'apiBase'    => rest_url( SSH_REST_NAMESPACE ),
-				'theme'      => get_option( 'ssh_widget_theme', 'auto' ),
-				'staticPages' => $post_options,
-				'staticBase' => ssh_get_static_site_url(),
-				'demoUrl'    => ssh_get_static_site_url() . '/demo-page',
-				'demoData'   => self::get_demo_reactions(),
-				'i18n'       => array(
-					'loadPreview'    => __( 'Load Preview', 'static-social-hub' ),
-					'loading'        => __( 'Loading…', 'static-social-hub' ),
-					'noStaticPages'   => __( 'No static site pages found.', 'static-social-hub' ),
-					'customUrlLabel' => __( 'Or enter a static page URL:', 'static-social-hub' ),
-					'selectPage'     => __( '— select a static site page —', 'static-social-hub' ),
-				),
-			) ) . ';',
+			'window.SSH_ADMIN = ' . wp_json_encode(
+				array(
+					'apiBase'     => rest_url( SSH_REST_NAMESPACE ),
+					'theme'       => get_option( 'ssh_widget_theme', 'auto' ),
+					'staticPages' => $post_options,
+					'staticBase'  => ssh_get_static_site_url(),
+					'demoUrl'     => ssh_get_static_site_url() . '/demo-page',
+					'demoData'    => self::get_demo_reactions(),
+					'i18n'        => array(
+						'loadPreview'    => __( 'Load Preview', 'static-social-hub' ),
+						'loading'        => __( 'Loading…', 'static-social-hub' ),
+						'noStaticPages'  => __( 'No static site pages found.', 'static-social-hub' ),
+						'customUrlLabel' => __( 'Or enter a static page URL:', 'static-social-hub' ),
+						'selectPage'     => __( '— select a static site page —', 'static-social-hub' ),
+					),
+				)
+			) . ';',
 			'before'
 		);
 
@@ -225,6 +235,9 @@ JS;
 	// Menu & page
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Registers the plugin options page under WordPress Settings menu.
+	 */
 	public static function add_menu_page() {
 		add_options_page(
 			__( 'Static Social Hub', 'static-social-hub' ),
@@ -235,6 +248,9 @@ JS;
 		);
 	}
 
+	/**
+	 * Registers all plugin settings, sections, and fields.
+	 */
 	public static function register_settings() {
 		// ---- General settings -----------------------------------------------
 		register_setting(
@@ -355,6 +371,9 @@ JS;
 	// Render
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Renders the main settings page (General, Widget, Demo tabs).
+	 */
 	public static function render_settings_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -365,7 +384,7 @@ JS;
 		$tab_input  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
 		$active_tab = in_array( $tab_input, array( 'general', 'widget', 'demo' ), true ) ? $tab_input : 'general';
 
-		$base_url = admin_url( 'options-general.php?page=static-social-hub' );
+		$base_url   = admin_url( 'options-general.php?page=static-social-hub' );
 		$widget_url = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.js' );
 		$api_base   = esc_url( rest_url( SSH_REST_NAMESPACE ) );
 		?>
@@ -374,15 +393,15 @@ JS;
 
 			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Settings tabs', 'static-social-hub' ); ?>">
 				<a href="<?php echo esc_url( $base_url . '&tab=general' ); ?>"
-				   class="nav-tab<?php echo 'general' === $active_tab ? ' nav-tab-active' : ''; ?>">
+					class="nav-tab<?php echo 'general' === $active_tab ? ' nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'General', 'static-social-hub' ); ?>
 				</a>
 				<a href="<?php echo esc_url( $base_url . '&tab=widget' ); ?>"
-				   class="nav-tab<?php echo 'widget' === $active_tab ? ' nav-tab-active' : ''; ?>">
+					class="nav-tab<?php echo 'widget' === $active_tab ? ' nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Widget', 'static-social-hub' ); ?>
 				</a>
 				<a href="<?php echo esc_url( $base_url . '&tab=demo' ); ?>"
-				   class="nav-tab<?php echo 'demo' === $active_tab ? ' nav-tab-active' : ''; ?>">
+					class="nav-tab<?php echo 'demo' === $active_tab ? ' nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Demo', 'static-social-hub' ); ?>
 				</a>
 			</nav>
@@ -398,7 +417,7 @@ JS;
 			</form>
 
 			<?php elseif ( 'widget' === $active_tab ) : ?>
-			<?php $css_url = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.css' ); ?>
+				<?php $css_url = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.css' ); ?>
 
 			<h2><?php esc_html_e( 'Embed Code', 'static-social-hub' ); ?></h2>
 			<p><?php esc_html_e( 'Add the following snippet to any static page where you want comments and reactions to appear:', 'static-social-hub' ); ?></p>
@@ -406,7 +425,7 @@ JS;
 			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;link rel="stylesheet" href="<?php echo esc_url( $css_url ); ?>"&gt;
 &lt;div id="ssh-comments"&gt;&lt;/div&gt;
 &lt;script src="<?php echo esc_url( $widget_url ); ?>"
-        data-api="<?php echo esc_url( $api_base ); ?>"&gt;&lt;/script&gt;</code></pre>
+		data-api="<?php echo esc_url( $api_base ); ?>"&gt;&lt;/script&gt;</code></pre>
 			<p class="description">
 				<?php
 				printf(
@@ -418,7 +437,7 @@ JS;
 			</p>
 
 			<hr>
-			<?php self::render_preview_section(); ?>
+				<?php self::render_preview_section(); ?>
 
 			<hr>
 			<form method="post" action="options.php">
@@ -429,15 +448,18 @@ JS;
 				?>
 			</form>
 
-			<?php else : // demo tab ?>
+			<?php else : // Demo tab. ?>
 
-			<?php self::render_demo_tab(); ?>
+				<?php self::render_demo_tab(); ?>
 
 			<?php endif; ?>
 		</div>
 		<?php
 	}
 
+	/**
+	 * Renders the Appearance settings page.
+	 */
 	public static function render_appearance_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -560,22 +582,31 @@ JS;
 	}
 
 
+	/**
+	 * Outputs the description for the General settings section.
+	 */
 	public static function render_section_description() {
 		echo '<p>' . esc_html__( 'Configure how the Static Social Hub connects your WordPress backend to your static website.', 'static-social-hub' ) . '</p>';
 	}
 
+	/**
+	 * Outputs the description for the Appearance settings section.
+	 */
 	public static function render_appearance_section_description() {
 		echo '<p>' . esc_html__( 'Control the default visual theme for the embedded widget.', 'static-social-hub' ) . '</p>';
 	}
 
+	/**
+	 * Renders the static site URL input field.
+	 */
 	public static function render_static_site_url_field() {
 		$value   = get_option( 'ssh_static_site_url', '' );
 		$default = ssh_get_static_site_url();
 		?>
 		<input type="url" name="ssh_static_site_url" id="ssh_static_site_url"
-		       value="<?php echo esc_attr( $value ); ?>"
-		       placeholder="<?php echo esc_attr( $default ); ?>"
-		       class="regular-text">
+				value="<?php echo esc_attr( $value ); ?>"
+				placeholder="<?php echo esc_attr( $default ); ?>"
+				class="regular-text">
 		<p class="description">
 			<?php
 			printf(
@@ -588,29 +619,38 @@ JS;
 		<?php
 	}
 
+	/**
+	 * Renders the CORS allowed origin input field.
+	 */
 	public static function render_cors_origin_field() {
 		$value   = get_option( 'ssh_cors_origin', '' );
 		$default = ssh_get_static_site_url();
 		?>
 		<input type="url" name="ssh_cors_origin" id="ssh_cors_origin"
-		       value="<?php echo esc_attr( $value ); ?>"
-		       placeholder="<?php echo esc_attr( $default ); ?>"
-		       class="regular-text">
+				value="<?php echo esc_attr( $value ); ?>"
+				placeholder="<?php echo esc_attr( $default ); ?>"
+				class="regular-text">
 		<p class="description">
 			<?php esc_html_e( 'The origin that is allowed to make cross-origin requests to the REST API. Defaults to the static site URL above.', 'static-social-hub' ); ?>
 		</p>
 		<?php
 	}
 
+	/**
+	 * Outputs the description for the New Static Page Defaults settings section.
+	 */
 	public static function render_new_page_section_description() {
 		echo '<p>' . esc_html__( 'Settings applied whenever a new static page post is created automatically (via webmention or the widget).', 'static-social-hub' ) . '</p>';
 	}
 
+	/**
+	 * Renders the "trim page titles" checkbox field.
+	 */
 	public static function render_title_first_segment_field() {
 		$value = get_option( 'ssh_title_first_segment', false );
 		?>
 		<input type="checkbox" name="ssh_title_first_segment" id="ssh_title_first_segment"
-		       value="1" <?php checked( $value, 1 ); ?>>
+				value="1" <?php checked( $value, 1 ); ?>>
 		<label for="ssh_title_first_segment">
 			<?php esc_html_e( 'Use only the first segment of the HTML &lt;title&gt; when creating static pages from existing URLs', 'static-social-hub' ); ?>
 		</label>
@@ -620,6 +660,9 @@ JS;
 		<?php
 	}
 
+	/**
+	 * Renders the default fediverse visibility select field.
+	 */
 	public static function render_default_fediverse_visibility_field() {
 		$value   = get_option( 'ssh_default_fediverse_visibility', '' );
 		$options = array(
@@ -641,8 +684,11 @@ JS;
 		<?php
 	}
 
+	/**
+	 * Renders the widget theme select field.
+	 */
 	public static function render_widget_theme_field() {
-		$value = get_option( 'ssh_widget_theme', 'auto' );
+		$value   = get_option( 'ssh_widget_theme', 'auto' );
 		$options = array(
 			'auto'  => __( 'Auto (follows system preference)', 'static-social-hub' ),
 			'light' => __( 'Light', 'static-social-hub' ),
@@ -668,16 +714,18 @@ JS;
 	 * The actual mounting is handled by the inline JS from get_preview_controller_js().
 	 */
 	public static function render_preview_section() {
-		$static_pages = get_posts( array(
-			'post_type'      => 'static_pages',
-			'post_status'    => array( 'publish', 'pending', 'draft' ),
-			'posts_per_page' => 200,
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'fields'         => 'ids',
-		) );
+		$static_pages = get_posts(
+			array(
+				'post_type'      => 'static_pages',
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 100,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			)
+		);
 
-		$theme_value = get_option( 'ssh_widget_theme', 'auto' );
+		$theme_value   = get_option( 'ssh_widget_theme', 'auto' );
 		$theme_options = array(
 			'auto'  => __( 'Auto', 'static-social-hub' ),
 			'light' => __( 'Light', 'static-social-hub' ),
@@ -700,12 +748,13 @@ JS;
 					<?php else : ?>
 						<select id="ssh-preview-select" style="max-width:100%;min-width:300px;">
 							<option value=""><?php esc_html_e( '— select a static site page —', 'static-social-hub' ); ?></option>
-							<?php foreach ( $static_pages as $pid ) :
+							<?php
+							foreach ( $static_pages as $pid ) :
 								$static_url = get_post_meta( $pid, '_activitypub_canonical_url', true );
 								if ( ! $static_url ) {
 									$static_url = ssh_get_static_site_url() . get_post_field( 'post_title', $pid );
 								}
-							?>
+								?>
 								<option value="<?php echo esc_attr( $static_url ); ?>">
 									<?php echo esc_html( get_post_field( 'post_title', $pid ) ); ?>
 									&nbsp;(<?php echo esc_html( $static_url ); ?>)
@@ -722,8 +771,8 @@ JS;
 				</th>
 				<td>
 					<input type="url" id="ssh-preview-custom-url"
-					       placeholder="<?php echo esc_attr( ssh_get_static_site_url() . '/example-post' ); ?>"
-					       class="regular-text">
+							placeholder="<?php echo esc_attr( ssh_get_static_site_url() . '/example-post' ); ?>"
+							class="regular-text">
 					<p class="description"><?php esc_html_e( 'Enter any static page URL, or select a static site page above.', 'static-social-hub' ); ?></p>
 				</td>
 			</tr>
@@ -755,7 +804,7 @@ JS;
 				<strong id="ssh-preview-url-info" style="word-break:break-all;"></strong>
 			</div>
 			<div id="ssh-preview-output"
-			     style="border:1px solid #ddd;border-radius:0 0 4px 4px;padding:1.25em;background:#fff;min-height:80px;">
+				style="border:1px solid #ddd;border-radius:0 0 4px 4px;padding:1.25em;background:#fff;min-height:80px;">
 			</div>
 		</div>
 		<?php
@@ -789,63 +838,159 @@ JS;
 	 * @return array
 	 */
 	public static function get_demo_reactions() {
-		$av = function( $seed ) {
+		$av = function ( $seed ) {
 			return 'https://www.gravatar.com/avatar/' . md5( $seed ) . '?d=identicon&s=48&r=g';
 		};
 
 		return array(
-			'url'      => '',
-			'post_id'  => null,
+			'url'         => '',
+			'post_id'     => null,
 
-			'likes' => array(
-				array( 'id' => 'demo-l1',  'author' => 'Alice',    'author_url' => 'https://mastodon.social/@alice',    'author_avatar' => $av( 'alice@mastodon.social' ),    'date' => '2025-02-10T09:14:00' ),
-				array( 'id' => 'demo-l2',  'author' => 'Bob',      'author_url' => 'https://fosstodon.org/@bob',        'author_avatar' => $av( 'bob@fosstodon.org' ),        'date' => '2025-02-10T09:31:00' ),
-				array( 'id' => 'demo-l3',  'author' => 'Charlie',  'author_url' => 'https://social.coop/@charlie',      'author_avatar' => $av( 'charlie@social.coop' ),      'date' => '2025-02-10T10:02:00' ),
-				array( 'id' => 'demo-l4',  'author' => 'Diana',    'author_url' => 'https://hachyderm.io/@diana',       'author_avatar' => $av( 'diana@hachyderm.io' ),       'date' => '2025-02-11T08:45:00' ),
-				array( 'id' => 'demo-l5',  'author' => 'Eve',      'author_url' => 'https://mastodon.online/@eve',      'author_avatar' => $av( 'eve@mastodon.online' ),      'date' => '2025-02-11T11:20:00' ),
-				array( 'id' => 'demo-l6',  'author' => 'Frank',    'author_url' => 'https://infosec.exchange/@frank',   'author_avatar' => $av( 'frank@infosec.exchange' ),   'date' => '2025-02-12T07:05:00' ),
-				array( 'id' => 'demo-l7',  'author' => 'Grace',    'author_url' => 'https://techhub.social/@grace',     'author_avatar' => $av( 'grace@techhub.social' ),     'date' => '2025-02-12T14:33:00' ),
-				array( 'id' => 'demo-l8',  'author' => 'Hank',     'author_url' => 'https://kolektiva.social/@hank',    'author_avatar' => $av( 'hank@kolektiva.social' ),    'date' => '2025-02-13T10:10:00' ),
-				array( 'id' => 'demo-l9',  'author' => 'Iris',     'author_url' => 'https://mastodon.social/@iris',     'author_avatar' => $av( 'iris@mastodon.social' ),     'date' => '2025-02-14T16:50:00' ),
-				array( 'id' => 'demo-l10', 'author' => 'Jack',     'author_url' => 'https://fosstodon.org/@jack',       'author_avatar' => $av( 'jack@fosstodon.org' ),       'date' => '2025-02-15T09:22:00' ),
-			),
-
-			'boosts' => array(
-				array( 'id' => 'demo-b1', 'author' => 'Kate',   'author_url' => 'https://mastodon.social/@kate',   'author_avatar' => $av( 'kate@mastodon.social' ),   'date' => '2025-02-10T09:45:00' ),
-				array( 'id' => 'demo-b2', 'author' => 'Liam',   'author_url' => 'https://social.coop/@liam',       'author_avatar' => $av( 'liam@social.coop' ),       'date' => '2025-02-11T13:00:00' ),
-				array( 'id' => 'demo-b3', 'author' => 'Mia',    'author_url' => 'https://hachyderm.io/@mia',       'author_avatar' => $av( 'mia@hachyderm.io' ),       'date' => '2025-02-12T08:17:00' ),
-				array( 'id' => 'demo-b4', 'author' => 'Noah',   'author_url' => 'https://fosstodon.org/@noah',     'author_avatar' => $av( 'noah@fosstodon.org' ),     'date' => '2025-02-13T17:30:00' ),
-				array( 'id' => 'demo-b5', 'author' => 'Olivia', 'author_url' => 'https://mastodon.online/@olivia', 'author_avatar' => $av( 'olivia@mastodon.online' ), 'date' => '2025-02-14T11:55:00' ),
-				array( 'id' => 'demo-b6', 'author' => 'Pete',   'author_url' => 'https://infosec.exchange/@pete',  'author_avatar' => $av( 'pete@infosec.exchange' ),  'date' => '2025-02-15T14:08:00' ),
-			),
-
-			'replies' => array(
+			'likes'       => array(
 				array(
-					'id'             => 'demo-r1',
-					'author'         => 'Quinn',
-					'author_url'     => 'https://mastodon.social/@quinn',
-					'author_avatar'  => $av( 'quinn@mastodon.social' ),
-					'date'           => '2025-02-10T10:30:00',
-					'source'         => 'https://mastodon.social/@quinn/113982741000000001',
-					'content'        => 'Really appreciated this post. The observation about the chalk drawing lasting a whole month despite the rain was unexpectedly moving.',
+					'id'            => 'demo-l1',
+					'author'        => 'Alice',
+					'author_url'    => 'https://mastodon.social/@alice',
+					'author_avatar' => $av( 'alice@mastodon.social' ),
+					'date'          => '2025-02-10T09:14:00',
 				),
 				array(
-					'id'             => 'demo-r2',
-					'author'         => 'Rose',
-					'author_url'     => 'https://social.coop/@rose',
-					'author_avatar'  => $av( 'rose@social.coop' ),
-					'date'           => '2025-02-12T15:44:00',
-					'source'         => 'https://social.coop/@rose/113997830000000002',
-					'content'        => 'This reminded me of something Robert Macfarlane wrote about attention and slowness. Have you read The Wild Places?',
+					'id'            => 'demo-l2',
+					'author'        => 'Bob',
+					'author_url'    => 'https://fosstodon.org/@bob',
+					'author_avatar' => $av( 'bob@fosstodon.org' ),
+					'date'          => '2025-02-10T09:31:00',
 				),
 				array(
-					'id'             => 'demo-r3',
-					'author'         => 'Sam',
-					'author_url'     => 'https://hachyderm.io/@sam',
-					'author_avatar'  => $av( 'sam@hachyderm.io' ),
-					'date'           => '2025-02-15T08:12:00',
-					'source'         => 'https://hachyderm.io/@sam/114013200000000003',
-					'content'        => 'I started doing this after reading your post — early morning walk, same route each day. It changes how you notice things.',
+					'id'            => 'demo-l3',
+					'author'        => 'Charlie',
+					'author_url'    => 'https://social.coop/@charlie',
+					'author_avatar' => $av( 'charlie@social.coop' ),
+					'date'          => '2025-02-10T10:02:00',
+				),
+				array(
+					'id'            => 'demo-l4',
+					'author'        => 'Diana',
+					'author_url'    => 'https://hachyderm.io/@diana',
+					'author_avatar' => $av( 'diana@hachyderm.io' ),
+					'date'          => '2025-02-11T08:45:00',
+				),
+				array(
+					'id'            => 'demo-l5',
+					'author'        => 'Eve',
+					'author_url'    => 'https://mastodon.online/@eve',
+					'author_avatar' => $av( 'eve@mastodon.online' ),
+					'date'          => '2025-02-11T11:20:00',
+				),
+				array(
+					'id'            => 'demo-l6',
+					'author'        => 'Frank',
+					'author_url'    => 'https://infosec.exchange/@frank',
+					'author_avatar' => $av( 'frank@infosec.exchange' ),
+					'date'          => '2025-02-12T07:05:00',
+				),
+				array(
+					'id'            => 'demo-l7',
+					'author'        => 'Grace',
+					'author_url'    => 'https://techhub.social/@grace',
+					'author_avatar' => $av( 'grace@techhub.social' ),
+					'date'          => '2025-02-12T14:33:00',
+				),
+				array(
+					'id'            => 'demo-l8',
+					'author'        => 'Hank',
+					'author_url'    => 'https://kolektiva.social/@hank',
+					'author_avatar' => $av( 'hank@kolektiva.social' ),
+					'date'          => '2025-02-13T10:10:00',
+				),
+				array(
+					'id'            => 'demo-l9',
+					'author'        => 'Iris',
+					'author_url'    => 'https://mastodon.social/@iris',
+					'author_avatar' => $av( 'iris@mastodon.social' ),
+					'date'          => '2025-02-14T16:50:00',
+				),
+				array(
+					'id'            => 'demo-l10',
+					'author'        => 'Jack',
+					'author_url'    => 'https://fosstodon.org/@jack',
+					'author_avatar' => $av( 'jack@fosstodon.org' ),
+					'date'          => '2025-02-15T09:22:00',
+				),
+			),
+
+			'boosts'      => array(
+				array(
+					'id'            => 'demo-b1',
+					'author'        => 'Kate',
+					'author_url'    => 'https://mastodon.social/@kate',
+					'author_avatar' => $av( 'kate@mastodon.social' ),
+					'date'          => '2025-02-10T09:45:00',
+				),
+				array(
+					'id'            => 'demo-b2',
+					'author'        => 'Liam',
+					'author_url'    => 'https://social.coop/@liam',
+					'author_avatar' => $av( 'liam@social.coop' ),
+					'date'          => '2025-02-11T13:00:00',
+				),
+				array(
+					'id'            => 'demo-b3',
+					'author'        => 'Mia',
+					'author_url'    => 'https://hachyderm.io/@mia',
+					'author_avatar' => $av( 'mia@hachyderm.io' ),
+					'date'          => '2025-02-12T08:17:00',
+				),
+				array(
+					'id'            => 'demo-b4',
+					'author'        => 'Noah',
+					'author_url'    => 'https://fosstodon.org/@noah',
+					'author_avatar' => $av( 'noah@fosstodon.org' ),
+					'date'          => '2025-02-13T17:30:00',
+				),
+				array(
+					'id'            => 'demo-b5',
+					'author'        => 'Olivia',
+					'author_url'    => 'https://mastodon.online/@olivia',
+					'author_avatar' => $av( 'olivia@mastodon.online' ),
+					'date'          => '2025-02-14T11:55:00',
+				),
+				array(
+					'id'            => 'demo-b6',
+					'author'        => 'Pete',
+					'author_url'    => 'https://infosec.exchange/@pete',
+					'author_avatar' => $av( 'pete@infosec.exchange' ),
+					'date'          => '2025-02-15T14:08:00',
+				),
+			),
+
+			'replies'     => array(
+				array(
+					'id'            => 'demo-r1',
+					'author'        => 'Quinn',
+					'author_url'    => 'https://mastodon.social/@quinn',
+					'author_avatar' => $av( 'quinn@mastodon.social' ),
+					'date'          => '2025-02-10T10:30:00',
+					'source'        => 'https://mastodon.social/@quinn/113982741000000001',
+					'content'       => 'Really appreciated this post. The observation about the chalk drawing lasting a whole month despite the rain was unexpectedly moving.',
+				),
+				array(
+					'id'            => 'demo-r2',
+					'author'        => 'Rose',
+					'author_url'    => 'https://social.coop/@rose',
+					'author_avatar' => $av( 'rose@social.coop' ),
+					'date'          => '2025-02-12T15:44:00',
+					'source'        => 'https://social.coop/@rose/113997830000000002',
+					'content'       => 'This reminded me of something Robert Macfarlane wrote about attention and slowness. Have you read The Wild Places?',
+				),
+				array(
+					'id'            => 'demo-r3',
+					'author'        => 'Sam',
+					'author_url'    => 'https://hachyderm.io/@sam',
+					'author_avatar' => $av( 'sam@hachyderm.io' ),
+					'date'          => '2025-02-15T08:12:00',
+					'source'        => 'https://hachyderm.io/@sam/114013200000000003',
+					'content'       => 'I started doing this after reading your post — early morning walk, same route each day. It changes how you notice things.',
 				),
 			),
 
@@ -870,7 +1015,7 @@ JS;
 				),
 			),
 
-			'comments' => array(
+			'comments'    => array(
 				array(
 					'id'            => 'demo-c1',
 					'author'        => 'Jordan',
@@ -895,6 +1040,12 @@ JS;
 	// Sanitizers
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sanitizes a URL option value, keeping only scheme + host.
+	 *
+	 * @param string $value Raw option value to sanitize.
+	 * @return string Sanitized URL or empty string.
+	 */
 	public static function sanitize_url_option( $value ) {
 		$value = esc_url_raw( trim( $value ) );
 		// Strip path — we only want scheme + host.
@@ -911,14 +1062,32 @@ JS;
 		return '';
 	}
 
+	/**
+	 * Sanitizes a checkbox option to 1 or 0.
+	 *
+	 * @param mixed $value Raw option value to sanitize.
+	 * @return int 1 if truthy, 0 otherwise.
+	 */
 	public static function sanitize_checkbox_option( $value ) {
 		return $value ? 1 : 0;
 	}
 
+	/**
+	 * Sanitizes the fediverse visibility option to an allowed value.
+	 *
+	 * @param string $value Raw option value to sanitize.
+	 * @return string One of: '', 'quiet_public', 'local'.
+	 */
 	public static function sanitize_fediverse_visibility_option( $value ) {
 		return in_array( $value, array( '', 'quiet_public', 'local' ), true ) ? $value : 'local';
 	}
 
+	/**
+	 * Sanitizes the widget theme option to an allowed value.
+	 *
+	 * @param string $value Raw option value to sanitize.
+	 * @return string One of: 'light', 'dark', 'auto'.
+	 */
 	public static function sanitize_theme_option( $value ) {
 		return in_array( $value, array( 'light', 'dark', 'auto' ), true ) ? $value : 'auto';
 	}
@@ -927,6 +1096,9 @@ JS;
 	// Notices
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Shows an admin notice if the static site URL is using the auto-detected default.
+	 */
 	public static function maybe_show_default_notice() {
 		$screen = get_current_screen();
 		if ( ! $screen ) {

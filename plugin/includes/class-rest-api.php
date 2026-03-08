@@ -15,14 +15,23 @@ namespace StaticSocialHub;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * REST API endpoints for the Static Social Hub plugin.
+ */
 class REST_API {
 
+	/**
+	 * Registers REST routes and CORS filter hooks.
+	 */
 	public static function init() {
 		add_action( 'rest_api_init', array( self::class, 'register_routes' ) );
 		// Add CORS headers for the static site origin on all our REST responses.
 		add_filter( 'rest_pre_serve_request', array( self::class, 'add_cors_headers' ), 10, 4 );
 	}
 
+	/**
+	 * Registers all plugin REST routes.
+	 */
 	public static function register_routes() {
 		register_rest_route(
 			SSH_REST_NAMESPACE,
@@ -128,7 +137,7 @@ class REST_API {
 	 * post_id and edit_url. The URL must belong to the configured static site.
 	 * No authentication required — URL validation is the guard.
 	 *
-	 * @param \WP_REST_Request $request
+	 * @param \WP_REST_Request $request Incoming REST request with a 'url' parameter.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function create_static_page_post( \WP_REST_Request $request ) {
@@ -139,17 +148,18 @@ class REST_API {
 			return $result;
 		}
 
-		return rest_ensure_response( array(
-			'post_id'  => $result,
-			'edit_url' => admin_url( 'post.php?post=' . $result . '&action=edit' ),
-		) );
+		return rest_ensure_response(
+			array(
+				'post_id'  => $result,
+				'edit_url' => admin_url( 'post.php?post=' . $result . '&action=edit' ),
+			)
+		);
 	}
 
-	// -------------------------------------------------------------------------
 	/**
 	 * Returns all reactions (comments, webmentions, AP likes/boosts/replies) for a static URL.
 	 *
-	 * @param \WP_REST_Request $request
+	 * @param \WP_REST_Request $request Incoming REST request with a 'url' parameter.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function get_reactions( \WP_REST_Request $request ) {
@@ -191,9 +201,9 @@ class REST_API {
 		);
 
 		foreach ( $raw_comments as $comment ) {
-			$type = strtolower( trim( $comment->comment_type ) );
-			$bucket = self::classify_comment( $comment );
-			$shaped = self::shape_comment( $comment, $bucket );
+			$type                       = strtolower( trim( $comment->comment_type ) );
+			$bucket                     = self::classify_comment( $comment );
+			$shaped                     = self::shape_comment( $comment, $bucket );
 			$response_data[ $bucket ][] = $shaped;
 		}
 
@@ -217,7 +227,7 @@ class REST_API {
 	 *   - 'comment' without AP protocol → regular comment
 	 *   - 'webmention' / 'pingback' → webmention
 	 *
-	 * @param \WP_Comment $comment
+	 * @param \WP_Comment $comment The comment to classify.
 	 * @return string  One of: likes|boosts|replies|webmentions|comments
 	 */
 	private static function classify_comment( \WP_Comment $comment ) {
@@ -248,17 +258,17 @@ class REST_API {
 	/**
 	 * Shapes a WP_Comment into a clean array for the API response.
 	 *
-	 * @param \WP_Comment $comment
-	 * @param string      $bucket
+	 * @param \WP_Comment $comment The comment to shape into an array.
+	 * @param string      $bucket  The reaction bucket the comment belongs to.
 	 * @return array
 	 */
 	private static function shape_comment( \WP_Comment $comment, $bucket ) {
 		$shaped = array(
-			'id'           => (int) $comment->comment_ID,
-			'author'       => $comment->comment_author,
-			'author_url'   => $comment->comment_author_url,
+			'id'            => (int) $comment->comment_ID,
+			'author'        => $comment->comment_author,
+			'author_url'    => $comment->comment_author_url,
 			'author_avatar' => self::get_avatar_url( $comment ),
-			'date'         => $comment->comment_date_gmt,
+			'date'          => $comment->comment_date_gmt,
 		);
 
 		// Add content for everything except bare likes/boosts.
@@ -272,7 +282,7 @@ class REST_API {
 			if ( ! $source ) {
 				$source = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_source', true );
 			}
-			$shaped['source'] = $source ?: $comment->comment_author_url;
+			$shaped['source'] = $source ? $source : $comment->comment_author_url;
 		}
 
 		// Fediverse reply: include the ActivityPub post URL so the date can link to it.
@@ -292,7 +302,7 @@ class REST_API {
 	/**
 	 * Returns the avatar URL for a comment author.
 	 *
-	 * @param \WP_Comment $comment
+	 * @param \WP_Comment $comment The comment to retrieve the avatar for.
 	 * @return string
 	 */
 	private static function get_avatar_url( \WP_Comment $comment ) {
@@ -304,7 +314,7 @@ class REST_API {
 
 		// Fall back to Gravatar.
 		$avatar_url = get_avatar_url( $comment->comment_author_email, array( 'default' => 'identicon' ) );
-		return $avatar_url ?: '';
+		return $avatar_url ? $avatar_url : '';
 	}
 
 	// -------------------------------------------------------------------------
@@ -314,7 +324,7 @@ class REST_API {
 	/**
 	 * Handles comment submission from the static site widget.
 	 *
-	 * @param \WP_REST_Request $request
+	 * @param \WP_REST_Request $request Incoming REST request with comment fields.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function submit_comment( \WP_REST_Request $request ) {
@@ -466,13 +476,13 @@ class REST_API {
 	/**
 	 * Adds CORS headers to all Drostan REST API responses.
 	 *
-	 * @param bool             $served
-	 * @param \WP_HTTP_Response $result
-	 * @param \WP_REST_Request  $request
-	 * @param \WP_REST_Server   $server
+	 * @param bool              $served   Whether the request has already been served.
+	 * @param \WP_HTTP_Response $result   The response object.
+	 * @param \WP_REST_Request  $request  The current REST request.
+	 * @param \WP_REST_Server   $_server  Server instance (unused).
 	 * @return bool
 	 */
-	public static function add_cors_headers( $served, $result, $request, $server ) {
+	public static function add_cors_headers( $served, $result, $request, $_server ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		$route = $request->get_route();
 		if ( 0 !== strpos( $route, '/' . SSH_REST_NAMESPACE . '/' ) ) {
 			return $served;
@@ -491,7 +501,7 @@ class REST_API {
 	/**
 	 * Handles CORS preflight (OPTIONS) requests by returning 200 immediately.
 	 *
-	 * @param \WP_REST_Request $request
+	 * @param \WP_REST_Request $request Incoming OPTIONS REST request.
 	 * @return \WP_REST_Response
 	 */
 	public static function handle_preflight( \WP_REST_Request $request ) {

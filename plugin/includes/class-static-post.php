@@ -10,8 +10,14 @@ namespace StaticSocialHub;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Handles the static_pages custom post type and URL-to-post resolution.
+ */
 class Static_Post {
 
+	/**
+	 * Registers post type and webmention hooks.
+	 */
 	public static function init() {
 		add_action( 'init', array( self::class, 'register_post_type' ) );
 		add_filter( 'webmention_post_id', array( self::class, 'resolve_post_id' ), 10, 2 );
@@ -62,7 +68,7 @@ class Static_Post {
 	 * Finds an existing static page for a URL, or creates one if it passes all
 	 * validation checks. Returns a WP_Error describing the first failing check.
 	 *
-	 * @param string $url
+	 * @param string $url The static page URL to find or create a post for.
 	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
 	 */
 	public static function find_or_create( $url ) {
@@ -84,7 +90,7 @@ class Static_Post {
 			return new \WP_Error( 'ssh_not_found', __( 'Static page returned 404.', 'static-social-hub' ) );
 		}
 
-		$post_id = self::create_static_page( $url, $title ?: sprintf( '[Title unavailable: %s]', self::normalise_path( $url ) ) );
+		$post_id = self::create_static_page( $url, $title ? $title : sprintf( '[Title unavailable: %s]', self::normalise_path( $url ) ) );
 		if ( ! $post_id ) {
 			return new \WP_Error( 'ssh_create_failed', __( 'Could not create the static page.', 'static-social-hub' ) );
 		}
@@ -127,7 +133,7 @@ class Static_Post {
 	 * Any other HTTP error or timeout returns false (fetch failed, page may be
 	 * temporarily unavailable — still worth creating the post).
 	 *
-	 * @param string $url
+	 * @param string $url The static page URL to fetch and parse the title from.
 	 * @return string|false|null
 	 */
 	public static function fetch_page_title( $url ) {
@@ -148,7 +154,7 @@ class Static_Post {
 	/**
 	 * Extracts and returns the trimmed <title> from an HTML string, or false if absent.
 	 *
-	 * @param string $html
+	 * @param string $html Raw HTML string to search for a title element.
 	 * @return string|false
 	 */
 	private static function extract_title( $html ) {
@@ -163,7 +169,7 @@ class Static_Post {
 			$title = trim( $parts[0] );
 		}
 
-		return $title ?: false;
+		return '' !== $title ? $title : false;
 	}
 
 	/**
@@ -187,25 +193,27 @@ class Static_Post {
 	 * @return int|false Post ID or false.
 	 */
 	private static function query_by_static_url( $static_url ) {
-		$results = get_posts( array(
-			'post_type'      => 'static_pages',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
-			'post_status'    => array( 'publish', 'pending', 'draft' ),
-			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		$results = get_posts(
+			array(
+				'post_type'      => 'static_pages',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				array(
 					'key'   => '_activitypub_canonical_url',
 					'value' => $static_url,
 				),
-			),
-		) );
+				),
+			)
+		);
 		return $results ? $results[0] : false;
 	}
 
 	/**
 	 * Checks whether a URL belongs to the configured static site.
 	 *
-	 * @param string $url
+	 * @param string $url The URL to test against the configured static site base.
 	 * @return bool
 	 */
 	public static function is_static_url( $url ) {
@@ -217,7 +225,7 @@ class Static_Post {
 	 * Checks whether a URL belongs to the WordPress site itself by testing
 	 * whether it starts with the WordPress installation URL (site_url()).
 	 *
-	 * @param string $url
+	 * @param string $url The URL to test against the WordPress site base.
 	 * @return bool
 	 */
 	public static function is_wordpress_url( $url ) {
@@ -228,12 +236,11 @@ class Static_Post {
 	/**
 	 * Returns a normalised path string (no trailing slash except root "/").
 	 *
-	 * @param string $url
+	 * @param string $url Full URL to extract the path from.
 	 * @return string
 	 */
 	private static function normalise_path( $url ) {
 		$path = wp_parse_url( $url, PHP_URL_PATH ) ?? '/';
 		return '/' === $path ? '/' : rtrim( $path, '/' );
 	}
-
 }
