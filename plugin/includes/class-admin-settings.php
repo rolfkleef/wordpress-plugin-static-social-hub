@@ -91,6 +91,13 @@ class Admin_Settings {
 			true
 		);
 
+		wp_enqueue_style(
+			'ssh-widget',
+			SSH_PLUGIN_URL . 'assets/static-social-hub.css',
+			array(),
+			SSH_VERSION
+		);
+
 		// Build static site page list for the General page preview dropdown.
 		$static_pages = get_posts( array(
 			'post_type'      => 'static_pages',
@@ -178,11 +185,6 @@ class Admin_Settings {
     }
 
     var theme = (themeEl && themeEl.value) ? themeEl.value : (cfg.theme || 'auto');
-
-    // Clear any previous render and reset the widget's styles flag so colours
-    // update correctly when switching themes.
-    var oldStyle = document.getElementById('ssh-widget-styles');
-    if (oldStyle) { oldStyle.parentNode.removeChild(oldStyle); }
 
     outputEl.id = 'ssh-preview-output';
     if (window.SSH && window.SSH.mount) {
@@ -396,10 +398,12 @@ JS;
 			</form>
 
 			<?php elseif ( 'widget' === $active_tab ) : ?>
+			<?php $css_url = esc_url( SSH_PLUGIN_URL . 'assets/static-social-hub.css' ); ?>
 
 			<h2><?php esc_html_e( 'Embed Code', 'static-social-hub' ); ?></h2>
 			<p><?php esc_html_e( 'Add the following snippet to any static page where you want comments and reactions to appear:', 'static-social-hub' ); ?></p>
-			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;div id="ssh-comments"&gt;&lt;/div&gt;
+			<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;link rel="stylesheet" href="<?php echo $css_url; ?>"&gt;
+&lt;div id="ssh-comments"&gt;&lt;/div&gt;
 &lt;script src="<?php echo $widget_url; ?>"
         data-api="<?php echo $api_base; ?>"&gt;&lt;/script&gt;</code></pre>
 			<p class="description">
@@ -423,8 +427,6 @@ JS;
 				submit_button();
 				?>
 			</form>
-
-			<?php self::render_css_docs_section(); ?>
 
 			<?php else : // demo tab ?>
 
@@ -451,9 +453,7 @@ JS;
 				?>
 			</form>
 
-			<hr>
-			<?php self::render_css_docs_section(); ?>
-		</div>
+			</div>
 		<?php
 	}
 
@@ -538,9 +538,6 @@ JS;
 				var cfg = window.SSH_ADMIN || {};
 				var el = document.getElementById('ssh-demo-widget');
 				if (!el || !window.SSH || !window.SSH.mount) { return; }
-				// Remove any previously injected widget styles so theme is fresh.
-				var old = document.getElementById('ssh-widget-styles');
-				if (old) { old.parentNode.removeChild(old); }
 				el.id = 'ssh-demo-widget'; // keep id stable
 				window.SSH.mount(
 					el,
@@ -567,7 +564,7 @@ JS;
 	}
 
 	public static function render_appearance_section_description() {
-		echo '<p>' . esc_html__( 'Control the default visual theme for the embedded widget. Use the CSS reference below to customise further.', 'static-social-hub' ) . '</p>';
+		echo '<p>' . esc_html__( 'Control the default visual theme for the embedded widget.', 'static-social-hub' ) . '</p>';
 	}
 
 	public static function render_static_site_url_field() {
@@ -766,148 +763,6 @@ JS;
 	// -------------------------------------------------------------------------
 	// CSS documentation section
 	// -------------------------------------------------------------------------
-
-	/**
-	 * Renders the CSS customisation reference on the settings page.
-	 */
-	public static function render_css_docs_section() {
-		$css_vars = array(
-			'--ssh-bg'          => array( '#ffffff',  '#1a1a1a',  __( 'Main widget background', 'static-social-hub' ) ),
-			'--ssh-bg2'         => array( '#f9f9f9',  '#252525',  __( 'Secondary background (comments, form)', 'static-social-hub' ) ),
-			'--ssh-border'      => array( '#e0e0e0',  '#3a3a3a',  __( 'Border colour', 'static-social-hub' ) ),
-			'--ssh-text'        => array( '#111111',  '#e8e8e8',  __( 'Primary text colour', 'static-social-hub' ) ),
-			'--ssh-text-muted'  => array( '#666666',  '#999999',  __( 'Muted / meta text colour', 'static-social-hub' ) ),
-			'--ssh-link'        => array( '#0073aa',  '#7bbfff',  __( 'Link and button text colour', 'static-social-hub' ) ),
-			'--ssh-input-bg'    => array( '#ffffff',  '#2a2a2a',  __( 'Form input background', 'static-social-hub' ) ),
-			'--ssh-btn-bg'      => array( '#0073aa',  '#4a90d9',  __( 'Submit button background', 'static-social-hub' ) ),
-			'--ssh-btn-text'    => array( '#ffffff',  '#ffffff',  __( 'Submit button text colour', 'static-social-hub' ) ),
-			'--ssh-success'     => array( '#2e7d32',  '#4caf50',  __( 'Success message colour', 'static-social-hub' ) ),
-			'--ssh-error'       => array( '#c62828',  '#f44336',  __( 'Error message colour', 'static-social-hub' ) ),
-		);
-		?>
-		<h2><?php esc_html_e( 'Styling the Widget', 'static-social-hub' ); ?></h2>
-		<p>
-			<?php esc_html_e( 'The widget ships with default styles and supports three built-in themes via the data-theme attribute. You can override any aspect with plain CSS on your static site.', 'static-social-hub' ); ?>
-		</p>
-
-		<h3><?php esc_html_e( 'Theme attribute', 'static-social-hub' ); ?></h3>
-		<p><?php esc_html_e( 'Set the colour scheme directly on the container element:', 'static-social-hub' ); ?></p>
-		<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>&lt;!-- follows the visitor&#039;s OS setting (default) --&gt;
-&lt;div id="ssh-comments" data-theme="auto"&gt;&lt;/div&gt;
-
-&lt;!-- always light --&gt;
-&lt;div id="ssh-comments" data-theme="light"&gt;&lt;/div&gt;
-
-&lt;!-- always dark --&gt;
-&lt;div id="ssh-comments" data-theme="dark"&gt;&lt;/div&gt;</code></pre>
-
-		<h3><?php esc_html_e( 'CSS custom properties', 'static-social-hub' ); ?></h3>
-		<p>
-			<?php esc_html_e( 'All colours are defined as CSS custom properties on .ssh-widget. Override any of them to match your site\'s palette:', 'static-social-hub' ); ?>
-		</p>
-		<table class="widefat striped" style="max-width:900px;">
-			<thead>
-				<tr>
-					<th><?php esc_html_e( 'Variable', 'static-social-hub' ); ?></th>
-					<th><?php esc_html_e( 'Light default', 'static-social-hub' ); ?></th>
-					<th><?php esc_html_e( 'Dark default', 'static-social-hub' ); ?></th>
-					<th><?php esc_html_e( 'Description', 'static-social-hub' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ( $css_vars as $var => list( $light, $dark, $desc ) ) : ?>
-				<tr>
-					<td><code><?php echo esc_html( $var ); ?></code></td>
-					<td>
-						<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:<?php echo esc_attr( $light ); ?>;border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>
-						<code><?php echo esc_html( $light ); ?></code>
-					</td>
-					<td>
-						<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:<?php echo esc_attr( $dark ); ?>;border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>
-						<code><?php echo esc_html( $dark ); ?></code>
-					</td>
-					<td><?php echo esc_html( $desc ); ?></td>
-				</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-
-		<h3 style="margin-top:1.5em;"><?php esc_html_e( 'Override examples', 'static-social-hub' ); ?></h3>
-		<p><?php esc_html_e( 'Add these snippets to your static site\'s stylesheet:', 'static-social-hub' ); ?></p>
-		<pre style="background:#f6f7f7;padding:12px;overflow:auto;"><code>/* Match your site's brand colours */
-#ssh-comments {
-  --ssh-btn-bg:   #e63946;
-  --ssh-btn-text: #ffffff;
-  --ssh-link:     #e63946;
-}
-
-/* Custom fonts */
-#ssh-comments {
-  font-family: Georgia, serif;
-  font-size: 0.95rem;
-}
-
-/* Wider avatar circles */
-#ssh-comments .ssh-avatar-link,
-#ssh-comments .ssh-avatar-link img,
-#ssh-comments .ssh-avatar-placeholder {
-  width: 48px;
-  height: 48px;
-}
-
-/* Override dark theme colours for this site */
-@media (prefers-color-scheme: dark) {
-  #ssh-comments {
-    --ssh-bg:     #0d1117;
-    --ssh-bg2:    #161b22;
-    --ssh-border: #30363d;
-    --ssh-text:   #c9d1d9;
-  }
-}</code></pre>
-
-		<h3><?php esc_html_e( 'Available CSS classes', 'static-social-hub' ); ?></h3>
-		<p><?php esc_html_e( 'You can target any part of the widget with CSS selectors. Key classes:', 'static-social-hub' ); ?></p>
-		<table class="widefat striped" style="max-width:900px;">
-			<thead>
-				<tr>
-					<th><?php esc_html_e( 'Selector', 'static-social-hub' ); ?></th>
-					<th><?php esc_html_e( 'Description', 'static-social-hub' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php
-				$classes = array(
-					'.ssh-widget'           => __( 'Root container', 'static-social-hub' ),
-					'.ssh-reactions-bar'    => __( 'Reactions bar (likes / boosts / fediverse reply counts)', 'static-social-hub' ),
-					'.ssh-reaction-toggle'  => __( 'Individual reaction count button', 'static-social-hub' ),
-					'.ssh-avatar-list'      => __( 'Expandable panel listing avatars', 'static-social-hub' ),
-					'.ssh-avatars'          => __( 'Avatar grid (ul)', 'static-social-hub' ),
-					'.ssh-avatar-link'      => __( 'Linked avatar circle', 'static-social-hub' ),
-					'.ssh-section-title'    => __( 'Section heading (h3)', 'static-social-hub' ),
-					'.ssh-comment'          => __( 'Single comment/reply/webmention article', 'static-social-hub' ),
-					'.ssh-comment-comment'  => __( 'Regular comment (modifier class)', 'static-social-hub' ),
-					'.ssh-comment-reply'    => __( 'Fediverse reply (modifier class)', 'static-social-hub' ),
-					'.ssh-comment-webmention' => __( 'Webmention (modifier class)', 'static-social-hub' ),
-					'.ssh-comment-header'   => __( 'Comment header row (avatar + meta)', 'static-social-hub' ),
-					'.ssh-comment-content'  => __( 'Comment body text', 'static-social-hub' ),
-					'.ssh-form-wrap'        => __( 'Comment form container', 'static-social-hub' ),
-					'.ssh-field'            => __( 'Form field wrapper', 'static-social-hub' ),
-					'.ssh-submit-btn'       => __( 'Submit button', 'static-social-hub' ),
-					'.ssh-form-status'      => __( 'Status / feedback message', 'static-social-hub' ),
-					'.ssh-status-success'   => __( 'Success state on .ssh-form-status', 'static-social-hub' ),
-					'.ssh-status-error'     => __( 'Error state on .ssh-form-status', 'static-social-hub' ),
-				);
-				foreach ( $classes as $selector => $description ) :
-				?>
-				<tr>
-					<td><code><?php echo esc_html( $selector ); ?></code></td>
-					<td><?php echo esc_html( $description ); ?></td>
-				</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-		<?php
-	}
 
 	// -------------------------------------------------------------------------
 	// Demo data & JS controller

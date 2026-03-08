@@ -1,0 +1,347 @@
+/**
+ * Static Social Hub — widget styles
+ *
+ * Include this file alongside the widget script on your static site:
+ *
+ *   <link rel="stylesheet" href="https://[wp-host]/wp-content/plugins/static-social-hub/assets/static-social-hub.css">
+ *   <div id="ssh-comments"></div>
+ *   <script src="https://[wp-host]/wp-content/plugins/static-social-hub/assets/static-social-hub.js"
+ *           data-api="https://[wp-host]/wp-json/static-social-hub/v1"></script>
+ *
+ *
+ * THEME
+ * -----
+ * Control the colour scheme via the data-theme attribute on the container element:
+ *
+ *   <div id="ssh-comments" data-theme="auto">   <!-- follows the visitor's OS setting (default) -->
+ *   <div id="ssh-comments" data-theme="light">  <!-- always light -->
+ *   <div id="ssh-comments" data-theme="dark">   <!-- always dark -->
+ *
+ *
+ * CSS CUSTOM PROPERTIES
+ * ---------------------
+ * All colours are CSS custom properties on .ssh-widget. Override any of them
+ * in your own stylesheet to match your site's palette:
+ *
+ *   Property          Light default  Dark default  Description
+ *   ----------------  -------------  ------------  ----------------------------------
+ *   --ssh-bg          #ffffff        #1a1a1a       Main widget background
+ *   --ssh-bg2         #f9f9f9        #252525       Secondary background (comments, form)
+ *   --ssh-border      #e0e0e0        #3a3a3a       Border colour
+ *   --ssh-text        #111111        #e8e8e8       Primary text colour
+ *   --ssh-text-muted  #666666        #999999       Muted / meta text colour
+ *   --ssh-link        #0073aa        #7bbfff       Link and button text colour
+ *   --ssh-input-bg    #ffffff        #2a2a2a       Form input background
+ *   --ssh-btn-bg      #0073aa        #4a90d9       Submit button background
+ *   --ssh-btn-text    #ffffff        #ffffff       Submit button text colour
+ *   --ssh-success     #2e7d32        #4caf50       Success message colour
+ *   --ssh-error       #c62828        #f44336       Error message colour
+ *
+ *
+ * OVERRIDE EXAMPLES
+ * -----------------
+ * Add these snippets to your static site's stylesheet:
+ *
+ *   /* Match your site's brand colours *\/
+ *   #ssh-comments {
+ *     --ssh-btn-bg:   #e63946;
+ *     --ssh-btn-text: #ffffff;
+ *     --ssh-link:     #e63946;
+ *   }
+ *
+ *   /* Custom font *\/
+ *   #ssh-comments {
+ *     font-family: Georgia, serif;
+ *     font-size: 0.95rem;
+ *   }
+ *
+ *   /* Wider avatar circles *\/
+ *   #ssh-comments .ssh-avatar-link,
+ *   #ssh-comments .ssh-avatar-link img,
+ *   #ssh-comments .ssh-avatar-placeholder {
+ *     width: 48px;
+ *     height: 48px;
+ *   }
+ *
+ *   /* Override dark theme colours for this site *\/
+ *   @media (prefers-color-scheme: dark) {
+ *     #ssh-comments {
+ *       --ssh-bg:     #0d1117;
+ *       --ssh-bg2:    #161b22;
+ *       --ssh-border: #30363d;
+ *       --ssh-text:   #c9d1d9;
+ *     }
+ *   }
+ *
+ *
+ * AVAILABLE CSS CLASSES
+ * ---------------------
+ * Target any part of the widget with these selectors:
+ *
+ *   Selector                  Description
+ *   ------------------------  -----------------------------------------------
+ *   .ssh-widget               Root container
+ *   .ssh-reactions-bar        Reactions bar (likes / boosts / fediverse reply counts)
+ *   .ssh-reaction-toggle      Individual reaction count button
+ *   .ssh-avatar-list          Expandable panel listing avatars
+ *   .ssh-avatars              Avatar grid (ul)
+ *   .ssh-avatar-link          Linked avatar circle
+ *   .ssh-section-title        Section heading (h3)
+ *   .ssh-comment              Single comment / reply / webmention article
+ *   .ssh-comment-comment      Regular comment (modifier class)
+ *   .ssh-comment-reply        Fediverse reply (modifier class)
+ *   .ssh-comment-webmention   Webmention (modifier class)
+ *   .ssh-comment-header       Comment header row (avatar + meta)
+ *   .ssh-comment-content      Comment body text
+ *   .ssh-form-wrap            Comment form container
+ *   .ssh-field                Form field wrapper
+ *   .ssh-submit-btn           Submit button
+ *   .ssh-form-status          Status / feedback message
+ *   .ssh-status-success       Success state on .ssh-form-status
+ *   .ssh-status-error         Error state on .ssh-form-status
+ *
+ * @package StaticSocialHub
+ */
+
+/* ---------------------------------------------------------------------------
+   Theme variables — light (default)
+--------------------------------------------------------------------------- */
+.ssh-widget {
+  --ssh-bg:         #fff;
+  --ssh-bg2:        #f9f9f9;
+  --ssh-border:     #e0e0e0;
+  --ssh-text:       #111;
+  --ssh-text-muted: #666;
+  --ssh-link:       #0073aa;
+  --ssh-input-bg:   #fff;
+  --ssh-btn-bg:     #0073aa;
+  --ssh-btn-text:   #fff;
+  --ssh-success:    #2e7d32;
+  --ssh-error:      #c62828;
+}
+
+/* Dark theme (explicit) */
+.ssh-widget.ssh-theme-dark {
+  --ssh-bg:         #1a1a1a;
+  --ssh-bg2:        #252525;
+  --ssh-border:     #3a3a3a;
+  --ssh-text:       #e8e8e8;
+  --ssh-text-muted: #999;
+  --ssh-link:       #7bbfff;
+  --ssh-input-bg:   #2a2a2a;
+  --ssh-btn-bg:     #4a90d9;
+  --ssh-btn-text:   #fff;
+  --ssh-success:    #4caf50;
+  --ssh-error:      #f44336;
+}
+
+/* Auto theme — dark vars applied when system is dark */
+@media (prefers-color-scheme: dark) {
+  .ssh-widget.ssh-theme-auto {
+    --ssh-bg:         #1a1a1a;
+    --ssh-bg2:        #252525;
+    --ssh-border:     #3a3a3a;
+    --ssh-text:       #e8e8e8;
+    --ssh-text-muted: #999;
+    --ssh-link:       #7bbfff;
+    --ssh-input-bg:   #2a2a2a;
+    --ssh-btn-bg:     #4a90d9;
+    --ssh-btn-text:   #fff;
+    --ssh-success:    #4caf50;
+    --ssh-error:      #f44336;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Layout & components
+--------------------------------------------------------------------------- */
+.ssh-widget {
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ssh-text);
+  line-height: 1.6;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.ssh-widget * { box-sizing: border-box; }
+
+.ssh-loading { padding: 1em; color: var(--ssh-text-muted); text-align: center; }
+.ssh-error   { color: var(--ssh-error); padding: .5em 0; }
+
+/* Reactions bar */
+.ssh-reactions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5em;
+  margin-bottom: 1em;
+  padding: .75em;
+  background: var(--ssh-bg2);
+  border: 1px solid var(--ssh-border);
+  border-radius: 6px;
+}
+.ssh-reaction-toggle {
+  background: none;
+  border: 1px solid var(--ssh-border);
+  border-radius: 4px;
+  padding: .25em .6em;
+  cursor: pointer;
+  color: var(--ssh-text);
+  font-size: .9rem;
+  transition: background .15s;
+}
+.ssh-reaction-toggle:hover,
+.ssh-reaction-toggle[aria-expanded="true"] { background: var(--ssh-border); }
+.ssh-count { font-weight: 600; }
+
+/* Admin indicator */
+.ssh-admin-indicator {
+  margin-left: auto;
+  font-size: .8rem;
+  padding: .2em .55em;
+  border-radius: 3px;
+  border: 1px dashed var(--ssh-border);
+  background: none;
+  color: var(--ssh-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.ssh-admin-indicator:hover         { color: var(--ssh-link); border-color: var(--ssh-link); }
+.ssh-admin-indicator:disabled      { opacity: .55; cursor: not-allowed; }
+
+/* Avatar lists */
+.ssh-avatar-list { overflow: hidden; }
+.ssh-collapsed   { display: none; }
+.ssh-avatars {
+  list-style: none;
+  margin: 0;
+  padding: .5em 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4em;
+}
+.ssh-avatar-link {
+  display: inline-block;
+  border-radius: 50%;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  transition: opacity .15s;
+}
+.ssh-avatar-link:hover { opacity: .85; }
+.ssh-avatar-link img   { width: 40px; height: 40px; display: block; object-fit: cover; }
+.ssh-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--ssh-border);
+  color: var(--ssh-text-muted);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 50%;
+}
+
+/* Sections */
+.ssh-section       { margin-top: 1.5em; }
+.ssh-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 .75em;
+  padding-bottom: .4em;
+  border-bottom: 2px solid var(--ssh-border);
+  color: var(--ssh-text);
+}
+
+/* Comment list */
+.ssh-comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.ssh-comment {
+  padding: .75em;
+  border: 1px solid var(--ssh-border);
+  border-radius: 6px;
+  background: var(--ssh-bg2);
+}
+.ssh-comment-header  { display: flex; align-items: center; gap: .75em; margin-bottom: .5em; }
+.ssh-comment-avatar  { flex-shrink: 0; }
+.ssh-comment-meta    { font-size: .9rem; color: var(--ssh-text-muted); }
+.ssh-comment-author  { font-weight: 600; color: var(--ssh-text); }
+.ssh-comment-author a               { color: var(--ssh-link); text-decoration: none; }
+.ssh-comment-author a:hover         { text-decoration: underline; }
+.ssh-comment-date                   { margin-left: .4em; font-size: .85em; }
+.ssh-comment-date-link              { margin-left: .4em; font-size: .85em; color: var(--ssh-text-muted); text-decoration: none; }
+.ssh-comment-date-link:hover        { color: var(--ssh-link); text-decoration: underline; }
+.ssh-reply-type-icon                { float: right; font-size: .95em; opacity: .7; margin-left: .5em; line-height: 1.4; }
+.ssh-reply-legend                   { font-size: .82em; color: var(--ssh-text-muted); margin: -.4em 0 .9em; padding: 0; }
+.ssh-legend-sep                     { margin: 0 .3em; opacity: .5; }
+.ssh-comment-content                { font-size: .95rem; margin: 0; white-space: pre-wrap; word-break: break-word; }
+.ssh-comment-pending                { opacity: .75; border-style: dashed; }
+.ssh-comment-pending-notice         { font-size: .8rem; color: var(--ssh-text-muted); margin: .5em 0 0; padding: 0; }
+.ssh-comment-submitted              { font-size: .9rem; color: var(--ssh-success); font-weight: 500; margin: .5em 0 0; padding: 0; }
+
+/* Comment form */
+.ssh-form-wrap {
+  margin-top: 1.5em;
+  padding: 1em;
+  border: 1px solid var(--ssh-border);
+  border-radius: 6px;
+  background: var(--ssh-bg2);
+}
+.ssh-form-title { font-size: 1rem; font-weight: 600; margin: 0 0 1em; color: var(--ssh-text); }
+.ssh-field      { margin-bottom: .85em; }
+.ssh-field label            { display: block; font-size: .9rem; font-weight: 500; margin-bottom: .3em; color: var(--ssh-text); }
+.ssh-field-hint             { font-weight: 400; color: var(--ssh-text-muted); }
+.ssh-field input,
+.ssh-field textarea {
+  width: 100%;
+  padding: .45em .65em;
+  border: 1px solid var(--ssh-border);
+  border-radius: 4px;
+  background: var(--ssh-input-bg);
+  color: var(--ssh-text);
+  font-size: .95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+.ssh-field input:focus,
+.ssh-field textarea:focus   { border-color: var(--ssh-btn-bg); }
+.ssh-field textarea         { resize: vertical; min-height: 100px; }
+.ssh-form-actions           { margin-top: .75em; }
+.ssh-submit-btn {
+  background: var(--ssh-btn-bg);
+  color: var(--ssh-btn-text);
+  border: none;
+  padding: .5em 1.2em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: .95rem;
+  font-family: inherit;
+  font-weight: 500;
+  transition: opacity .15s;
+}
+.ssh-submit-btn:hover:not(:disabled) { opacity: .9; }
+.ssh-submit-btn:disabled             { opacity: .55; cursor: not-allowed; }
+.ssh-form-status      { margin-top: .6em; font-size: .9rem; min-height: 1.2em; }
+.ssh-status-error     { color: var(--ssh-error); }
+.ssh-status-success   { color: var(--ssh-success); font-weight: 500; }
+
+/* Preview notice (admin only) */
+.ssh-preview-notice {
+  font-size: .85rem;
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffecb5;
+  border-radius: 4px;
+  padding: .4em .7em;
+  margin-bottom: 1em;
+}
