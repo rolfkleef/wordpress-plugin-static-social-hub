@@ -1,0 +1,17 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    ["@semantic-release/wordpress", {
+      "pluginSlug": "static-social-hub",
+      "include": ["plugin/**"],
+      "exclude": ["**/*.dist", "**/tests/**"]
+    }],
+    ["@semantic-release/git", {
+      "assets": ["CHANGELOG.md", "plugin/static-social-hub.php", "plugin/readme.txt"]
+    }],
+    "@semantic-release/github"
+  ]
+}

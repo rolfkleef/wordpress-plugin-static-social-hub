@@ -1,0 +1,58 @@
+{
+  "name": "static-social-hub",
+  "version": "0.0.0-development",
+  "description": "Static Social Hub is a WordPress plugin that allows you to create a social media feed on your website by fetching and displaying posts from various social media platforms.",
+  "private": true,
+  "scripts": {
+    "release": "semantic-release",
+    "lint:php": "composer run cs",
+    "format:php": "composer run cs:fix",
+    "test:php": "composer run test"
+  },
+  "devDependencies": {
+    "semantic-release": "^24.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/wordpress": "^1.6.6",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^10.0.0"
+  },
+  "release": {
+    "branches": ["main"],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/wordpress",
+        {
+          "type": "plugin",
+          "slug": "static-social-hub",
+          "withAssets": false,
+          "withReadme": true,
+          "withVersionFile": false,
+          "versionFiles": [
+            "plugin/static-social-hub.php",
+            "plugin/readme.txt"
+          ],
+          "include": [
+            "plugin/**"
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "plugin/static-social-hub.php",
+            "plugin/readme.txt"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  }
+}
