@@ -252,7 +252,7 @@
       ? '<span class="ssh-reply-type-icon" aria-label="' + esc(labelMap[type]) + '" title="' + esc(labelMap[type]) + '">' + iconMap[type] + '</span>'
       : '';
 
-    var html = '<article class="ssh-comment ssh-comment-' + type + '">';
+    var html = '<article class="ssh-comment ssh-comment-' + type + (item.pending ? ' ssh-comment-pending' : '') + '">';
     html += '<header class="ssh-comment-header">';
     html += iconHtml;
     html += '<div class="ssh-comment-avatar">' + renderAvatar(item) + '</div>';
@@ -268,6 +268,9 @@
     html += '</div></header>';
     if (content) {
       html += '<div class="ssh-comment-content">' + content + '</div>';
+    }
+    if (item.pending) {
+      html += '<p class="ssh-comment-pending-notice">\u23F3 ' + esc(t('Awaiting moderation')) + '</p>';
     }
     html += '</article>';
     return html;
@@ -379,8 +382,40 @@
         setStatus(statusEl, 'error', (err && err.message) ? err.message : t('Something went wrong. Please try again.'));
         return;
       }
-      form.style.display = 'none';
-      setStatus(statusEl, 'success', data.message || t('Your comment has been received.'));
+
+      // Hide the entire form wrap (removes "Add a comment" heading too) and
+      // replace it with a brief confirmation note.
+      var formWrap = form.closest ? form.closest('.ssh-form-wrap') : form.parentNode;
+      if (formWrap) {
+        formWrap.style.display = 'none';
+        var note = document.createElement('p');
+        note.className = 'ssh-comment-submitted';
+        note.textContent = data.message || t('Your comment has been received.');
+        formWrap.parentNode.insertBefore(note, formWrap.nextSibling);
+      }
+
+      // Insert the submitted comment into the replies list so the visitor
+      // immediately sees their comment (with a pending badge if awaiting moderation).
+      if (data && data.comment) {
+        var commentHtml = renderComment(data.comment, 'comment');
+        var rootEl = form.closest ? form.closest('.ssh-widget') : null;
+        var rootId = rootEl ? rootEl.id : null;
+        var repliesPanel = rootId ? document.getElementById('ssh-replies-list-' + rootId) : null;
+        if (repliesPanel) {
+          repliesPanel.insertAdjacentHTML('beforeend', commentHtml);
+        } else {
+          // No replies section yet — create one before the form section.
+          var formSection = formWrap ? formWrap.parentNode : null;
+          if (formSection) {
+            var newPanel = document.createElement('div');
+            if (rootId) { newPanel.id = 'ssh-replies-list-' + rootId; }
+            newPanel.className = 'ssh-avatar-list';
+            newPanel.setAttribute('aria-hidden', 'false');
+            newPanel.innerHTML = '<h3 class="ssh-section-title">' + esc(t('Replies')) + '</h3>' + commentHtml;
+            formSection.insertBefore(newPanel, formSection.firstChild);
+          }
+        }
+      }
     });
   }
 
@@ -451,6 +486,9 @@
       '.ssh-reply-legend{font-size:.82em;color:var(--ssh-text-muted);margin:-.4em 0 .9em;padding:0}',
       '.ssh-legend-sep{margin:0 .3em;opacity:.5}',
       '.ssh-comment-content{font-size:.95rem;margin:0;white-space:pre-wrap;word-break:break-word}',
+      '.ssh-comment-pending{opacity:.75;border-style:dashed}',
+      '.ssh-comment-pending-notice{font-size:.8rem;color:var(--ssh-text-muted);margin:.5em 0 0;padding:0}',
+      '.ssh-comment-submitted{font-size:.9rem;color:var(--ssh-success);font-weight:500;margin:.5em 0 0;padding:0}',
       '.ssh-form-wrap{margin-top:1.5em;padding:1em;border:1px solid var(--ssh-border);border-radius:6px;background:var(--ssh-bg2)}',
       '.ssh-form-title{font-size:1rem;font-weight:600;margin:0 0 1em;color:var(--ssh-text)}',
       '.ssh-field{margin-bottom:.85em}',

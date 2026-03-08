@@ -318,6 +318,12 @@ class REST_API {
 
 		// Build the comment data array.
 		// comment_approved starts at 0 (pending); wp_allow_comment() may upgrade it.
+		// comment_date_gmt must be set explicitly — wp_allow_comment() passes it to the
+		// flood check, and without it $time_newcomment evaluates to 0, making every
+		// subsequent submission appear to be a flood forever.
+		$comment_date     = current_time( 'mysql' );
+		$comment_date_gmt = current_time( 'mysql', true );
+
 		$comment_data = array(
 			'comment_post_ID'      => $post_id,
 			'comment_author'       => $author_name,
@@ -327,6 +333,8 @@ class REST_API {
 			'comment_type'         => '',
 			'comment_parent'       => 0,
 			'comment_approved'     => 0,
+			'comment_date'         => $comment_date,
+			'comment_date_gmt'     => $comment_date_gmt,
 			'comment_author_IP'    => self::get_client_ip(),
 			'comment_agent'        => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '',
 		);
@@ -335,7 +343,6 @@ class REST_API {
 		// wp_allow_comment() also handles duplicate and flood checks internally.
 		$allowed = wp_allow_comment( $comment_data, true );
 		if ( is_wp_error( $allowed ) ) {
-			// Map WP flood/duplicate error codes to friendlier messages.
 			$code = $allowed->get_error_code();
 			if ( 'comment_duplicate' === $code ) {
 				return new \WP_Error(
@@ -386,6 +393,14 @@ class REST_API {
 				'status'  => $state,
 				'message' => $message,
 				'id'      => $comment_id,
+				'comment' => array(
+					'author'        => $author_name,
+					'author_url'    => $author_url,
+					'author_avatar' => 'https://www.gravatar.com/avatar/' . md5( strtolower( trim( $author_email ) ) ) . '?s=40&d=identicon',
+					'content'       => $content,
+					'date'          => $comment_date_gmt,
+					'pending'       => ( 'pending' === $state ),
+				),
 			)
 		);
 	}
