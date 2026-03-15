@@ -96,7 +96,7 @@ class Admin_Settings {
 			return $actions;
 		}
 
-		$preview_url              = add_query_arg( 'activitypub', 'true', get_preview_post_link( $post ) );
+		$preview_url               = add_query_arg( 'activitypub', 'true', get_preview_post_link( $post ) );
 		$actions['ssh_ap_preview'] = sprintf(
 			'<a href="%s" target="_blank">%s</a>',
 			esc_url( $preview_url ),

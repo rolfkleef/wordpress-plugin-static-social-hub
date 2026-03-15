@@ -46,7 +46,7 @@ $ssh_json   = wp_json_encode(
 // Add the override again for that call, then remove it after the include.
 add_filter( 'activitypub_is_post_disabled', $ssh_preview_override, 10, 2 );
 ob_start();
-include \ACTIVITYPUB_PLUGIN_DIR . '/templates/post-preview.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+require \ACTIVITYPUB_PLUGIN_DIR . '/templates/post-preview.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
 $ssh_html = ob_get_clean();
 remove_filter( 'activitypub_is_post_disabled', $ssh_preview_override, 10 );
 
