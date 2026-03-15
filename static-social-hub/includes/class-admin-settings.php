@@ -37,6 +37,7 @@ class Admin_Settings {
 		add_action( 'admin_notices', array( self::class, 'maybe_show_default_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_preview_assets' ) );
 		add_action( 'add_meta_boxes', array( self::class, 'add_static_url_meta_box' ) );
+		add_filter( 'post_row_actions', array( self::class, 'add_fediverse_preview_row_action' ), 10, 2 );
 	}
 
 	// -------------------------------------------------------------------------
@@ -70,6 +71,39 @@ class Admin_Settings {
 		} else {
 			echo '<p><em>' . esc_html__( 'No static URL set.', 'static-social-hub' ) . '</em></p>';
 		}
+	}
+
+	/**
+	 * Adds a "Fediverse Preview ⁂" row action to static_pages posts in the list table.
+	 *
+	 * The ActivityPub plugin hides its own preview action for posts with local content
+	 * visibility. Since static_pages posts are often kept local (they federate via our
+	 * bridge rather than normal ActivityPub scheduling), we add the link ourselves so the
+	 * JSON preview is always accessible.
+	 *
+	 * Hooked into post_row_actions.
+	 *
+	 * @param string[] $actions Existing row actions.
+	 * @param \WP_Post $post    The current post object.
+	 * @return string[]
+	 */
+	public static function add_fediverse_preview_row_action( $actions, $post ) {
+		if (
+			'static_pages' !== $post->post_type ||
+			! in_array( $post->post_status, array( 'pending', 'draft', 'future', 'publish' ), true ) ||
+			! current_user_can( 'edit_post', $post->ID )
+		) {
+			return $actions;
+		}
+
+		$preview_url               = add_query_arg( 'activitypub', 'true', get_preview_post_link( $post ) );
+		$actions['ssh_ap_preview'] = sprintf(
+			'<a href="%s" target="_blank">%s</a>',
+			esc_url( $preview_url ),
+			esc_html__( 'Fediverse Preview ⁂', 'static-social-hub' )
+		);
+
+		return $actions;
 	}
 
 	// -------------------------------------------------------------------------
