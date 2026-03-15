@@ -45,6 +45,14 @@ class ActivityPub_Bridge {
 		// the WordPress URL. We substitute the static site URL stored in post meta instead.
 		add_filter( 'activitypub_transform_set_url', array( self::class, 'override_ap_url' ), 10, 2 );
 		add_filter( 'activitypub_transform_set_id', array( self::class, 'override_ap_url' ), 10, 2 );
+
+		// Override get_permalink() for static_pages so the [ap_permalink] shortcode (and any
+		// other caller) also gets the canonical static site URL instead of the WordPress URL.
+		add_filter( 'post_type_link', array( self::class, 'override_post_type_link' ), 10, 2 );
+
+		// Enhance the ActivityPub Fediverse Preview page with the raw JSON object so the
+		// exact federated payload can be inspected without leaving the admin.
+		add_filter( 'activitypub_preview_template', array( self::class, 'preview_template_with_json' ) );
 	}
 
 	/**
@@ -90,5 +98,38 @@ class ActivityPub_Bridge {
 
 		$canonical = get_post_meta( $post->ID, '_activitypub_canonical_url', true );
 		return $canonical ? $canonical : $value;
+	}
+
+	/**
+	 * Overrides get_permalink() for static_pages posts to return the canonical static URL.
+	 *
+	 * This ensures [ap_permalink] (which calls get_permalink() directly) and any other
+	 * caller gets the static site URL rather than the WordPress query-string URL.
+	 *
+	 * Hooked into post_type_link (which get_permalink() applies for custom post types).
+	 *
+	 * @param string   $post_link The default permalink.
+	 * @param \WP_Post $post      The post object.
+	 * @return string
+	 */
+	public static function override_post_type_link( $post_link, $post ) {
+		if ( ! $post instanceof \WP_Post || 'static_pages' !== $post->post_type ) {
+			return $post_link;
+		}
+
+		$canonical = get_post_meta( $post->ID, '_activitypub_canonical_url', true );
+		return $canonical ? $canonical : $post_link;
+	}
+
+	/**
+	 * Returns the path to our wrapper template that augments the ActivityPub
+	 * Fediverse Preview page with a collapsible raw-JSON section.
+	 *
+	 * Hooked into activitypub_preview_template.
+	 *
+	 * @return string Absolute path to the wrapper template file.
+	 */
+	public static function preview_template_with_json() {
+		return plugin_dir_path( __DIR__ ) . 'templates/activitypub-preview-wrapper.php';
 	}
 }

@@ -121,6 +121,52 @@ class ActivityPubBridgeTest extends UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// override_post_type_link
+	// -------------------------------------------------------------------------
+
+	public function test_override_post_type_link_substitutes_canonical_url_for_static_pages(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 42;
+		$post->post_type = 'static_pages';
+
+		Functions\expect( 'get_post_meta' )
+			->once()
+			->with( 42, '_activitypub_canonical_url', true )
+			->andReturn( 'https://static.example.com/about' );
+
+		$result = ActivityPub_Bridge::override_post_type_link( 'https://wp.example.com/?static_pages=about', $post );
+
+		$this->assertSame( 'https://static.example.com/about', $result );
+	}
+
+	public function test_override_post_type_link_passthrough_for_other_post_types(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 7;
+		$post->post_type = 'post';
+
+		Functions\expect( 'get_post_meta' )->never();
+
+		$result = ActivityPub_Bridge::override_post_type_link( 'https://wp.example.com/?p=7', $post );
+
+		$this->assertSame( 'https://wp.example.com/?p=7', $result );
+	}
+
+	public function test_override_post_type_link_falls_back_when_meta_empty(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 5;
+		$post->post_type = 'static_pages';
+
+		Functions\expect( 'get_post_meta' )
+			->once()
+			->with( 5, '_activitypub_canonical_url', true )
+			->andReturn( '' );
+
+		$result = ActivityPub_Bridge::override_post_type_link( 'https://wp.example.com/?static_pages=slug', $post );
+
+		$this->assertSame( 'https://wp.example.com/?static_pages=slug', $result );
+	}
+
+	// -------------------------------------------------------------------------
 	// add_static_page_type
 	// -------------------------------------------------------------------------
 
