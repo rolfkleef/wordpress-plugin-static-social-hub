@@ -1,0 +1,7 @@
+{
+    "redefinable-internals": [
+        "class_exists",
+        "function_exists",
+        "header"
+    ]
+}
