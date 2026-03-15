@@ -101,3 +101,11 @@ if ( ! class_exists( 'WP_Comment' ) ) {
 if ( ! defined( 'SSH_REST_NAMESPACE' ) ) {
 	define( 'SSH_REST_NAMESPACE', 'static-social-hub/v1' );
 }
+
+// Minimal WP_Post stub with the public properties accessed by ActivityPub_Bridge.
+if ( ! class_exists( 'WP_Post' ) ) {
+	class WP_Post {
+		public int    $ID        = 0;
+		public string $post_type = '';
+	}
+}

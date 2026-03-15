@@ -67,6 +67,60 @@ class ActivityPubBridgeTest extends UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// override_ap_url
+	// -------------------------------------------------------------------------
+
+	public function test_override_ap_url_substitutes_canonical_url_for_static_pages(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 42;
+		$post->post_type = 'static_pages';
+
+		Functions\expect( 'get_post_meta' )
+			->once()
+			->with( 42, '_activitypub_canonical_url', true )
+			->andReturn( 'https://static.example.com/about' );
+
+		$result = ActivityPub_Bridge::override_ap_url( 'https://wp.example.com/?p=42', $post );
+
+		$this->assertSame( 'https://static.example.com/about', $result );
+	}
+
+	public function test_override_ap_url_passthrough_for_other_post_types(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 7;
+		$post->post_type = 'post';
+
+		// get_post_meta must NOT be called for unrelated post types.
+		Functions\expect( 'get_post_meta' )->never();
+
+		$result = ActivityPub_Bridge::override_ap_url( 'https://wp.example.com/?p=7', $post );
+
+		$this->assertSame( 'https://wp.example.com/?p=7', $result );
+	}
+
+	public function test_override_ap_url_falls_back_to_original_when_meta_empty(): void {
+		$post            = new \WP_Post();
+		$post->ID        = 5;
+		$post->post_type = 'static_pages';
+
+		Functions\expect( 'get_post_meta' )
+			->once()
+			->with( 5, '_activitypub_canonical_url', true )
+			->andReturn( '' );
+
+		$result = ActivityPub_Bridge::override_ap_url( 'https://wp.example.com/?p=5', $post );
+
+		$this->assertSame( 'https://wp.example.com/?p=5', $result );
+	}
+
+	public function test_override_ap_url_passthrough_for_non_post_argument(): void {
+		// ActivityPub passes a WP_Post but guard against unexpected types.
+		$result = ActivityPub_Bridge::override_ap_url( 'https://wp.example.com/?p=1', null );
+
+		$this->assertSame( 'https://wp.example.com/?p=1', $result );
+	}
+
+	// -------------------------------------------------------------------------
 	// add_static_page_type
 	// -------------------------------------------------------------------------
 

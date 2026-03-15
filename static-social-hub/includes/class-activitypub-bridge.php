@@ -39,6 +39,12 @@ class ActivityPub_Bridge {
 		add_filter( 'option_activitypub_support_post_types', array( self::class, 'add_static_page_type' ) );
 		// Also call add_post_type_support directly at a later init priority as a belt-and-suspenders.
 		add_action( 'init', array( self::class, 'add_post_type_support_direct' ), 20 );
+
+		// Override the URL and ID used in the ActivityPub object for static_pages posts.
+		// ActivityPub's Post Transformer calls get_permalink() for live posts, which produces
+		// the WordPress URL. We substitute the static site URL stored in post meta instead.
+		add_filter( 'activitypub_transform_set_url', array( self::class, 'override_ap_url' ), 10, 2 );
+		add_filter( 'activitypub_transform_set_id', array( self::class, 'override_ap_url' ), 10, 2 );
 	}
 
 	/**
@@ -60,5 +66,29 @@ class ActivityPub_Bridge {
 			$post_types[] = 'static_pages';
 		}
 		return $post_types;
+	}
+
+	/**
+	 * Replaces the ActivityPub object URL/ID with the static site canonical URL.
+	 *
+	 * ActivityPub's Post Transformer calls get_permalink() for live posts, producing
+	 * the WordPress URL (e.g. /?p=123). For static_pages posts we store the real static
+	 * site URL in the _activitypub_canonical_url meta, so we substitute that here.
+	 * The same value is used for both the `url` and `id` properties so Fediverse servers
+	 * treat the static page URL as the authoritative identity of the object.
+	 *
+	 * Hooked into activitypub_transform_set_url and activitypub_transform_set_id.
+	 *
+	 * @param string   $value The URL/ID value proposed by ActivityPub.
+	 * @param \WP_Post $post  The post being transformed.
+	 * @return string
+	 */
+	public static function override_ap_url( $value, $post ) {
+		if ( ! $post instanceof \WP_Post || 'static_pages' !== $post->post_type ) {
+			return $value;
+		}
+
+		$canonical = get_post_meta( $post->ID, '_activitypub_canonical_url', true );
+		return $canonical ? $canonical : $value;
 	}
 }

@@ -97,7 +97,7 @@ All endpoints are public (`permission_callback => '__return_true'`). Security is
 ## Custom post type: `static_pages`
 
 Represents a static site page within WordPress so it can receive comments and be federated. Key behaviour:
-- Uses `_activitypub_canonical_url` post meta to store the real static URL; ActivityPub uses this as the object `id`/`url` when federating.
+- Uses `_activitypub_canonical_url` post meta to store the real static URL. **This is the authoritative URL** — `ActivityPub_Bridge` hooks `activitypub_transform_set_url` and `activitypub_transform_set_id` to substitute it for both properties in the ActivityPub object, overriding `get_permalink()` which would otherwise return the WordPress URL.
 - `rewrite => false` — WordPress URLs for these posts are not intended for public browsing.
 - `Static_Post::find_or_create($url)` — looks up or creates a `static_pages` post for a given URL; returns post ID or `WP_Error`.
 
