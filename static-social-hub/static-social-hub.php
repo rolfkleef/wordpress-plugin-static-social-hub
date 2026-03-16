@@ -85,6 +85,15 @@ function ssh_get_default_fediverse_visibility() {
 	return get_option( 'ssh_default_fediverse_visibility', 'local' );
 }
 
+/**
+ * Returns the configured additional text to include in Mastodon share links.
+ *
+ * @return string
+ */
+function ssh_get_mastodon_share_text() {
+	return (string) get_option( 'ssh_mastodon_share_text', '' );
+}
+
 add_action(
 	'plugins_loaded',
 	function () {

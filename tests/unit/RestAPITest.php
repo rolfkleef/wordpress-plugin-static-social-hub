@@ -177,7 +177,7 @@ class RestAPITest extends UnitTestCase {
 
 	public function test_get_reactions_returns_empty_buckets_when_no_post_exists(): void {
 		// ssh_get_static_site_url is called twice: once in get_reactions, once inside find_static_page.
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'get_posts' )->once()->andReturn( array() );
 		Functions\stubs( array( 'rest_ensure_response' => fn( $data ) => $data ) );
 
@@ -196,7 +196,7 @@ class RestAPITest extends UnitTestCase {
 	}
 
 	public function test_get_reactions_buckets_a_like_into_likes(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'get_posts' )->once()->andReturn( array( 99 ) );
 
 		$comment                       = new \WP_Comment();
@@ -239,7 +239,7 @@ class RestAPITest extends UnitTestCase {
 	}
 
 	public function test_get_reactions_buckets_a_regular_comment(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'get_posts' )->once()->andReturn( array( 99 ) );
 
 		$comment                       = new \WP_Comment();
@@ -281,7 +281,7 @@ class RestAPITest extends UnitTestCase {
 	}
 
 	public function test_get_reactions_includes_admin_url_when_post_found(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'get_posts' )->once()->andReturn( array( 42 ) );
 		Functions\expect( 'get_comments' )->once()->andReturn( array() );
 		Functions\expect( 'admin_url' )
@@ -314,7 +314,7 @@ class RestAPITest extends UnitTestCase {
 	}
 
 	public function test_submit_comment_rejects_invalid_email(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'is_email' )->once()->andReturn( false );
 
 		$result = REST_API::submit_comment(
@@ -326,7 +326,7 @@ class RestAPITest extends UnitTestCase {
 	}
 
 	public function test_submit_comment_rejects_content_too_short(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'is_email' )->once()->andReturn( true );
 
 		$result = REST_API::submit_comment(
@@ -448,7 +448,7 @@ class RestAPITest extends UnitTestCase {
 	 * including) the comments_open / wp_allow_comment call.
 	 */
 	private function setup_until_allow_comment(): void {
-		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com' ) );
+		Functions\stubs( array( 'StaticSocialHub\ssh_get_static_site_url' => fn() => 'https://static.example.com', 'StaticSocialHub\ssh_get_mastodon_share_text' => fn() => '' ) );
 		Functions\expect( 'is_email' )->once()->andReturn( true );
 		// Simulate an existing static_pages post so create_static_page isn't called.
 		Functions\expect( 'get_posts' )->once()->andReturn( array( 99 ) );

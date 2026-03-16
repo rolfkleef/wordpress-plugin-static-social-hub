@@ -167,13 +167,14 @@ class Admin_Settings {
 			'ssh-widget',
 			'window.SSH_ADMIN = ' . wp_json_encode(
 				array(
-					'apiBase'     => rest_url( SSH_REST_NAMESPACE ),
-					'theme'       => get_option( 'ssh_widget_theme', 'auto' ),
-					'staticPages' => $post_options,
-					'staticBase'  => ssh_get_static_site_url(),
-					'demoUrl'     => ssh_get_static_site_url() . '/demo-page',
-					'demoData'    => self::get_demo_reactions(),
-					'i18n'        => array(
+					'apiBase'           => rest_url( SSH_REST_NAMESPACE ),
+					'theme'             => get_option( 'ssh_widget_theme', 'auto' ),
+					'staticPages'       => $post_options,
+					'staticBase'        => ssh_get_static_site_url(),
+					'demoUrl'           => ssh_get_static_site_url() . '/demo-page',
+					'demoData'          => self::get_demo_reactions(),
+					'mastodonShareText' => ssh_get_mastodon_share_text(),
+					'i18n'              => array(
 						'loadPreview'    => __( 'Load Preview', 'static-social-hub' ),
 						'loading'        => __( 'Loading…', 'static-social-hub' ),
 						'noStaticPages'  => __( 'No static site pages found.', 'static-social-hub' ),
@@ -326,6 +327,24 @@ JS;
 			'ssh_cors_origin',
 			__( 'CORS allowed origin', 'static-social-hub' ),
 			array( self::class, 'render_cors_origin_field' ),
+			'static-social-hub',
+			'ssh_main_section'
+		);
+
+		register_setting(
+			'ssh_settings',
+			'ssh_mastodon_share_text',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
+
+		add_settings_field(
+			'ssh_mastodon_share_text',
+			__( 'Mastodon share text', 'static-social-hub' ),
+			array( self::class, 'render_mastodon_share_text_field' ),
 			'static-social-hub',
 			'ssh_main_section'
 		);
@@ -671,6 +690,22 @@ JS;
 	}
 
 	/**
+	 * Renders the Mastodon share text input field.
+	 */
+	public static function render_mastodon_share_text_field() {
+		$value = get_option( 'ssh_mastodon_share_text', '' );
+		?>
+		<input type="text" name="ssh_mastodon_share_text" id="ssh_mastodon_share_text"
+				value="<?php echo esc_attr( $value ); ?>"
+				class="regular-text"
+				placeholder="<?php esc_attr_e( 'e.g. via @you@example.social', 'static-social-hub' ); ?>">
+		<p class="description">
+			<?php esc_html_e( 'Optional text appended to the page URL in Mastodon share links (e.g. a handle or hashtag). Leave blank to share the URL only.', 'static-social-hub' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Outputs the description for the New Static Page Defaults settings section.
 	 */
 	public static function render_new_page_section_description() {
@@ -877,10 +912,11 @@ JS;
 		};
 
 		return array(
-			'url'         => '',
-			'post_id'     => null,
+			'url'                 => '',
+			'post_id'             => null,
+			'mastodon_share_text' => ssh_get_mastodon_share_text(),
 
-			'likes'       => array(
+			'likes'               => array(
 				array(
 					'id'            => 'demo-l1',
 					'author'        => 'Alice',
@@ -953,7 +989,7 @@ JS;
 				),
 			),
 
-			'boosts'      => array(
+			'boosts'              => array(
 				array(
 					'id'            => 'demo-b1',
 					'author'        => 'Kate',
@@ -998,7 +1034,7 @@ JS;
 				),
 			),
 
-			'replies'     => array(
+			'replies'             => array(
 				array(
 					'id'            => 'demo-r1',
 					'author'        => 'Quinn',
@@ -1028,7 +1064,7 @@ JS;
 				),
 			),
 
-			'webmentions' => array(
+			'webmentions'         => array(
 				array(
 					'id'            => 'demo-w1',
 					'author'        => "Taylor's Notes",
@@ -1049,7 +1085,7 @@ JS;
 				),
 			),
 
-			'comments'    => array(
+			'comments'            => array(
 				array(
 					'id'            => 'demo-c1',
 					'author'        => 'Jordan',
