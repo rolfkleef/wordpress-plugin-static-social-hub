@@ -29,6 +29,7 @@
         {
           "type": "plugin",
           "slug": "static-social-hub",
+          "path": "static-social-hub",
           "withAssets": false,
           "withReadme": true,
           "withVersionFile": false,
