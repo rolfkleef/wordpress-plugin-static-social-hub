@@ -81,8 +81,9 @@
  *   Selector                  Description
  *   ------------------------  -----------------------------------------------
  *   .ssh-widget               Root container
- *   .ssh-reactions-bar        Reactions bar (likes / boosts / fediverse reply counts)
+ *   .ssh-reactions-bar        Reactions bar (likes / boosts / fediverse reply counts / share)
  *   .ssh-reaction-toggle      Individual reaction count button
+ *   .ssh-share-mastodon       Mastodon share link (in reactions bar)
  *   .ssh-avatar-list          Expandable panel listing avatars
  *   .ssh-avatars              Avatar grid (ul)
  *   .ssh-avatar-link          Linked avatar circle
@@ -209,6 +210,30 @@
 
 .ssh-count {
   font-weight: 600;
+}
+
+/* Mastodon share link */
+.ssh-share-mastodon {
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  background: none;
+  border: 1px solid var(--ssh-border);
+  border-radius: 4px;
+  padding: .25em .6em;
+  color: var(--ssh-text);
+  text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.ssh-share-mastodon:hover {
+  background: var(--ssh-border);
+}
+
+.ssh-share-mastodon svg {
+  vertical-align: middle;
 }
 
 /* Admin indicator */
