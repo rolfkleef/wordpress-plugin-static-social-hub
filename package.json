@@ -30,6 +30,7 @@
           "type": "plugin",
           "slug": "static-social-hub",
           "path": "static-social-hub",
+          "releasePath": "/tmp/wp-release",
           "withAssets": false,
           "withReadme": true,
           "withVersionFile": false,
@@ -48,7 +49,18 @@
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
         }
       ],
-      "@semantic-release/github"
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "/tmp/wp-release/package.zip",
+              "name": "static-social-hub-${nextRelease.version}.zip",
+              "label": "WordPress Plugin Static Social Hub ${nextRelease.version}"
+            }
+          ]
+        }
+      ]
     ]
   }
 }
