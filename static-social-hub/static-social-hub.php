@@ -7,7 +7,7 @@
  *               ActivityPub reactions  (likes, boosts, replies) for static pages via
  *               a JavaScript widget.
  *               Requires the ActivityPub and the Webmention plugins to be installed and activated.
- * Version:      0.2.0
+ * Version:      0.0.0
  * Author:       Rolf Kleef
  * Author URI:   https://drostan.org
  * License:      AGPL-3.0-or-later
