@@ -1,3 +1,12 @@
+# [1.1.0](https://github.com/rolfkleef/wordpress-plugin-static-social-hub/compare/v1.0.0...v1.1.0) (2026-03-16)
+
+
+### Features
+
+* add copy link button ([4e6c596](https://github.com/rolfkleef/wordpress-plugin-static-social-hub/commit/4e6c5966235ff9fca1b2bb324fd11a5c680c4511))
+* add optional extra text for Mastodon shares ([d54adae](https://github.com/rolfkleef/wordpress-plugin-static-social-hub/commit/d54adae66bcc7588607f84766a460c54da7209f1))
+* add share on mastodon button ([df34da9](https://github.com/rolfkleef/wordpress-plugin-static-social-hub/commit/df34da96eb6d7c07c898f24f4358dbd24776508f))
+
 # 1.0.0 (2026-03-16)
 
 
