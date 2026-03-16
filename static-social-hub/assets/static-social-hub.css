@@ -82,7 +82,7 @@
  *   ------------------------  -----------------------------------------------
  *   .ssh-widget               Root container
  *   .ssh-reactions-bar        Reactions bar (likes / boosts / fediverse reply counts / share)
- *   .ssh-reaction-toggle      Individual reaction count button
+ *   .ssh-bar-btn              Button in the reactions bar (reaction counts, share, copy)
  *   .ssh-share-mastodon       Mastodon share link (in reactions bar)
  *   .ssh-copy-url             Copy link button (in reactions bar)
  *   .ssh-avatar-list          Expandable panel listing avatars
@@ -193,7 +193,7 @@
   border-radius: 6px;
 }
 
-.ssh-reaction-toggle {
+.ssh-bar-btn {
   background: none;
   border: 1px solid var(--ssh-border);
   border-radius: 4px;
@@ -204,8 +204,8 @@
   transition: background .15s;
 }
 
-.ssh-reaction-toggle:hover,
-.ssh-reaction-toggle[aria-expanded="true"] {
+.ssh-bar-btn:hover,
+.ssh-bar-btn[aria-expanded="true"] {
   background: var(--ssh-border);
 }
 

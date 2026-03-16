@@ -151,17 +151,17 @@
     var showAdmin = hasWpSettingsCookie() && data.admin;
     html += '<div class="ssh-reactions-bar">';
     if (totalLikes > 0) {
-      html += '<button class="ssh-reaction-toggle" aria-expanded="false" data-target="ssh-likes-list-' + root.id + '">';
+      html += '<button class="ssh-bar-btn" aria-expanded="false" data-target="ssh-likes-list-' + root.id + '">';
       html += '\u2764\uFE0F <span class="ssh-count">' + totalLikes + '</span> ' + esc(totalLikes === 1 ? t('like') : t('likes'));
       html += '</button>';
     }
     if (totalBoosts > 0) {
-      html += '<button class="ssh-reaction-toggle" aria-expanded="false" data-target="ssh-boosts-list-' + root.id + '">';
+      html += '<button class="ssh-bar-btn" aria-expanded="false" data-target="ssh-boosts-list-' + root.id + '">';
       html += '\uD83D\uDD01 <span class="ssh-count">' + totalBoosts + '</span> ' + esc(totalBoosts === 1 ? t('boost') : t('boosts'));
       html += '</button>';
     }
     if (totalAll > 0) {
-      html += '<button class="ssh-reaction-toggle" aria-expanded="true" data-target="ssh-replies-list-' + root.id + '">';
+      html += '<button class="ssh-bar-btn" aria-expanded="true" data-target="ssh-replies-list-' + root.id + '">';
       html += '\uD83D\uDCAC <span class="ssh-count">' + totalAll + '</span> ' + esc(totalAll === 1 ? t('reply') : t('replies'));
       html += '</button>';
     }
@@ -319,7 +319,7 @@
   // ---------------------------------------------------------------------------
 
   function attachEventListeners(root, pageUrl, api, preview) {
-    var toggles = root.querySelectorAll('.ssh-reaction-toggle');
+    var toggles = root.querySelectorAll('.ssh-bar-btn');
     for (var i = 0; i < toggles.length; i++) {
       toggles[i].addEventListener('click', handleToggle);
     }
@@ -367,7 +367,7 @@
       '</svg>';
     var text = shareText ? shareText + ' ' + pageUrl : pageUrl;
     var href = 'https://share.joinmastodon.org/#text=' + encodeURIComponent(text);
-    var html = '<button class="ssh-reaction-toggle" aria-expanded="false">';
+    var html = '<button class="ssh-bar-btn" aria-expanded="false">';
       html += '<a href="' + esc(href) + '" class="ssh-share-mastodon" target="_blank" rel="noopener">' + svg + ' ' + esc(t('Share on Mastodon')) + '</a>';
       html += '</button>';
     return html;
