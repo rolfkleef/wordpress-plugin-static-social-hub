@@ -34,10 +34,7 @@
           "withAssets": false,
           "withReadme": true,
           "withVersionFile": false,
-          "versionFiles": [],
-          "include": [
-            "static-social-hub/**"
-          ]
+          "versionFiles": []
         }
       ],
       [
