@@ -167,14 +167,14 @@ class Admin_Settings {
 			'ssh-widget',
 			'window.SSH_ADMIN = ' . wp_json_encode(
 				array(
-					'apiBase'     => rest_url( SSH_REST_NAMESPACE ),
-					'theme'       => get_option( 'ssh_widget_theme', 'auto' ),
-					'staticPages' => $post_options,
-					'staticBase'  => ssh_get_static_site_url(),
-					'demoUrl'     => ssh_get_static_site_url() . '/demo-page',
-					'demoData'    => self::get_demo_reactions(),
+					'apiBase'           => rest_url( SSH_REST_NAMESPACE ),
+					'theme'             => get_option( 'ssh_widget_theme', 'auto' ),
+					'staticPages'       => $post_options,
+					'staticBase'        => ssh_get_static_site_url(),
+					'demoUrl'           => ssh_get_static_site_url() . '/demo-page',
+					'demoData'          => self::get_demo_reactions(),
 					'mastodonShareText' => ssh_get_mastodon_share_text(),
-					'i18n'        => array(
+					'i18n'              => array(
 						'loadPreview'    => __( 'Load Preview', 'static-social-hub' ),
 						'loading'        => __( 'Loading…', 'static-social-hub' ),
 						'noStaticPages'  => __( 'No static site pages found.', 'static-social-hub' ),
@@ -916,7 +916,7 @@ JS;
 			'post_id'             => null,
 			'mastodon_share_text' => ssh_get_mastodon_share_text(),
 
-			'likes'       => array(
+			'likes'               => array(
 				array(
 					'id'            => 'demo-l1',
 					'author'        => 'Alice',
@@ -989,7 +989,7 @@ JS;
 				),
 			),
 
-			'boosts'      => array(
+			'boosts'              => array(
 				array(
 					'id'            => 'demo-b1',
 					'author'        => 'Kate',
@@ -1034,7 +1034,7 @@ JS;
 				),
 			),
 
-			'replies'     => array(
+			'replies'             => array(
 				array(
 					'id'            => 'demo-r1',
 					'author'        => 'Quinn',
@@ -1064,7 +1064,7 @@ JS;
 				),
 			),
 
-			'webmentions' => array(
+			'webmentions'         => array(
 				array(
 					'id'            => 'demo-w1',
 					'author'        => "Taylor's Notes",
@@ -1085,7 +1085,7 @@ JS;
 				),
 			),
 
-			'comments'    => array(
+			'comments'            => array(
 				array(
 					'id'            => 'demo-c1',
 					'author'        => 'Jordan',

@@ -176,14 +176,14 @@ class REST_API {
 		$post_id = Static_Post::find_static_page( $url );
 
 		$response_data = array(
-			'url'                  => $url,
-			'post_id'              => $post_id,
-			'mastodon_share_text'  => ssh_get_mastodon_share_text(),
-			'comments'             => array(),
-			'webmentions'          => array(),
-			'likes'                => array(),
-			'boosts'               => array(),
-			'replies'              => array(),
+			'url'                 => $url,
+			'post_id'             => $post_id,
+			'mastodon_share_text' => ssh_get_mastodon_share_text(),
+			'comments'            => array(),
+			'webmentions'         => array(),
+			'likes'               => array(),
+			'boosts'              => array(),
+			'replies'             => array(),
 		);
 
 		if ( ! $post_id ) {
