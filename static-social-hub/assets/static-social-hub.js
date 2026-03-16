@@ -166,6 +166,7 @@
       html += '</button>';
     }
     html += mastodonShareHtml();
+    html += copyUrlHtml();
     if (showAdmin) {
       html += data.post_id ? adminEditLinkHtml(data.admin.edit_url) : adminCreateBtnHtml();
     }
@@ -331,6 +332,13 @@
       });
     }
 
+    var copyBtn = root.querySelector('.ssh-copy-url');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        handleCopyUrl(copyBtn, pageUrl);
+      });
+    }
+
     var createBtn = root.querySelector('.ssh-admin-create');
     if (createBtn) {
       createBtn.addEventListener('click', function () {
@@ -347,6 +355,10 @@
   function adminCreateBtnHtml() {
     return '<button class="ssh-admin-indicator ssh-admin-create">' +
       '\u2795 ' + esc(t('Create on Social Hub')) + '</button>';
+  }
+
+  function copyUrlHtml() {
+    return '<button class="ssh-copy-url" type="button">\uD83D\uDD17 ' + esc(t('Copy link')) + '</button>';
   }
 
   function mastodonShareHtml() {
@@ -384,6 +396,19 @@
         btn.className = fresh.className;
         btn.textContent = fresh.textContent;
       });
+  }
+
+  function handleCopyUrl(btn, pageUrl) {
+    if (!navigator.clipboard) { return; }
+    navigator.clipboard.writeText(pageUrl).then(function () {
+      var original = btn.innerHTML;
+      btn.innerHTML = '\u2713 ' + esc(t('Copied!'));
+      btn.disabled = true;
+      setTimeout(function () {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 2000);
+    });
   }
 
   function hasWpSettingsCookie() {
