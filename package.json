@@ -33,10 +33,7 @@
           "withAssets": false,
           "withReadme": true,
           "withVersionFile": false,
-          "versionFiles": [
-            "static-social-hub/static-social-hub.php",
-            "static-social-hub/readme.txt"
-          ],
+          "versionFiles": [],
           "include": [
             "static-social-hub/**"
           ]
@@ -46,9 +43,7 @@
         "@semantic-release/git",
         {
           "assets": [
-            "CHANGELOG.md",
-            "static-social-hub/static-social-hub.php",
-            "static-social-hub/readme.txt"
+            "CHANGELOG.md"
           ],
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
         }

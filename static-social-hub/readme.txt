@@ -1,7 +1,7 @@
 === Static Social Hub ===
 Contributors: rolfkleef
 Tags: static, activitypub, webmention, comments, widget
-Stable tag: 0.2.0
+Stable tag: 0.0.0
 Tested up to: 6.9
 Requires PHP: 7.4
 License: AGPL-3.0-or-later
